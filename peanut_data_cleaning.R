@@ -5,6 +5,7 @@
 ####Strategies to Analyze: 1_ Frequency dependence; 2_PayoffBias; 3) Rank Bias; 4) Kin Bias; 5) Sex Bias; 
 #### Interested in sex and age variation
 #### load packages + data
+rm(list = ls())
 library(lubridate)
 library(RColorBrewer)
 #do <- read.csv(text=getURL("https://raw.githubusercontent.com/eslrworkshop/resources-2019/master/day3/panama_data_14days.csv"), header=T)
@@ -36,35 +37,34 @@ col_pal <- brewer.pal(n=3, name='Set2') #color pallette, but spelled right
 pdf('noha_peanut_raw_dotplot.pdf' , width=150 , height = 10 )
 
 plot(ID_actor_index ~ obs_index , data=d , col=col_pal[d$technique_index] , pch=ifelse(d$succeed==1, 19, 1), cex=0.4, yaxt='n' , ylab="Individual ID" , xlab="Peanut Index")
-axis(2, at=1:length(unique(d$ID_actor)), s labels=sort(unique(d$ID_actor)), las=2 , cex.axis=0.75)
+axis(2, at=1:length(unique(d$ID_actor)),labels=sort(unique(d$ID_actor)), las=2 , cex.axis=0.75)
 #lines between each date of testing
 for (i in 1:max(d$date_index)){
   abline(v=min(d$obs_index[d$date_index==i]))
 }
-legend("topleft", legend=c("Success", "Attempt") , pch=c s(19,1), cex=1 , bty='n' )
+legend("topleft", legend=c("Success", "Attempt") , pch=c(19,1), cex=1 , bty='n' )
 legend("topright", legend=c("ch", "cms" , "cmt"),
          col=col_pal , pch=15 , cex=1 ,  bty='n')
 
 dev.off()
 
 ##multi plots per day
-pdf('noha_peanut_raw_dotplot_multipanel.pdf' , width=30 , height = 20 )
 
-par(mfrow=c(11,1) , mar=c(1,0,1,0) , oma=c(2,3,2,2))
-plot(ID_actor_index ~ obs_index , data=d[d$date_index==1,] , col=col_pal[d$technique_index] , pch=ifelse(d$succeed==1, 19, 1), cex=0.5, yaxt='n' , ylab="Individual ID" , xlab="Peanut Index" , main=min(date(d$timestamp[d$date_index==1,])))
+###correct multipanel
+pdf('noha_peanut_raw_dotplot_multipanel.pdf' , width=48 , height = 24 )
+
+par(mfrow=c(11,1) , mar=c(1,0,1,0) , oma=c(2,3,2,3))
+plot(ID_actor_index ~ obs_index , data=d[d$date_index==1,] , col=col_pal[d[d$date_index==1,]$technique_index] , pch=ifelse(d[d$date_index==1,]$succeed==1, 19, 1), cex=0.5, yaxt='n' , ylab="Individual ID" , xlab="Peanut Index" , main=min(date(d$timestamp[d$date_index==1,])) , ylim=c(1,max(d$ID_actor_index)))
 axis(2, at=1:length(unique(d$ID_actor)), labels=sort(unique(d$ID_actor)), las=2 , cex.axis=0.75)
 legend("topleft", legend=c("Success", "Attempt") , pch=c(19,1), cex=1 , bty='n' )
-legend("topright", legend=c("ch", "cms" , "cmt"),
-       col=col_pal ,pch=15 , cex=1 ,  bty='n')
+legend("topright", legend=c("ch", "cms" , "cmt") , col=col_pal ,pch=15 , cex=1 ,  bty='n')
 
 for(i in 2:max(d$date_index)){
-  plot(ID_actor_index ~ obs_index , data=d[d$date_index==i,] , col=col_pal[d$technique_index] , pch=ifelse(d$succeed==1, 19, 1), cex=0.5, yaxt='n' , ylab="Individual ID" , xlab="Peanut Index", main=min(date(d$timestamp[d$date_index==i,])))
+  plot(ID_actor_index ~ obs_index , data=d[d$date_index==i,] , col=col_pal[d[d$date_index==i,]$technique_index] , pch=ifelse(d[d$date_index==i,]$succeed ==1, 19, 1), cex=0.5, yaxt='n' , ylab="Individual ID" , xlab="Peanut Index", main=min(date(d$timestamp[d$date_index==i,])) , ylim=c(1,max(d$ID_actor_index)))
   axis(2, at=1:length(unique(d$ID_actor)), labels=sort(unique(d$ID_actor)), las=2 , cex.axis=0.75)
-}
+  legend("topleft", legend=c("Success", "Attempt") , pch=c(19,1), cex=1 , bty='n' )
+  legend("topright", legend=c("ch", "cms" , "cmt") , col=col_pal ,pch=15 , cex=1 ,  bty='n')
+  }
 
 dev.off()
-
-
-
-
 
