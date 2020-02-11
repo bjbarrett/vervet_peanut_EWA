@@ -8,13 +8,28 @@
 rm(list = ls())
 library(lubridate)
 library(RColorBrewer)
+library(beepr)
 #do <- read.csv(text=getURL("https://raw.githubusercontent.com/eslrworkshop/resources-2019/master/day3/panama_data_14days.csv"), header=T)
 dkubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/Data_peanuts_exp_Kubu_time_ordered.csv", header=T, sep=";")
 dnoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/Data_peanuts_exp_Noha_time_ordered.csv", header=T, sep=";")
 dkubu <- dkubu[1:304,] #drop NA on tail of datasheet
-d <- dnoha #only analyze noha
-d$ID_index <- as.integer(d$ID_actor) #index for all 30 individuals, need to see if this matches rank + sex files
+ILVKubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/ILV_Kubu_2018.csv", header=T, sep=",")
+ILVNoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/ILV_Noha_2018.csv", header=T, sep=",")
+KinNoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_noha_2018.csv", header=T, sep=",")
+KinKubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_kubu_2018.csv", header=T, sep=",")
+#merge ILV to Data
+dnoha  <- merge(dnoha,ILVNoha, by="ID_actor")
+dkubu  <- merge(dkubu,ILVKubu, by="ID_actor")
 
+length(unique(dnoha$ID_actor))
+length(unique(dkubu$ID_actor))
+sort(unique(dnoha$ID_actor))
+sort(unique(ILVNoha$ID_actor))
+sort(unique(dkubu$ID_actor))
+sort(unique(ILVNoha$ID_actor))
+
+d <- dnoha #only analyze noha
+d$ID_all_index <- as.integer(d$ID_actor) #index for all 30 individuals, need to see if this matches rank + sex files
 ###get rows where behaviors of interest are present
 d <- droplevels(subset(dnoha, subset = Event %in% c('ach','acms','acmt','sch','scms','scmt') ))
 
@@ -24,7 +39,7 @@ isTRUE(length(unique(d$ID_actor))==length(unique(dnoha$ID_actor)))
 d$ID_actor_index <- as.integer(d$ID_actor) #unique integer for each actor vervet that used one of 3 techniques
 
 d$timestamp <- with(d, dmy(Date) + hms(Time)) #apply date and time timestamp to each observation
-d[order(d$timestamp),]#order by timestap
+d <- d[order(d$timestamp),] #order by timestap
 d$obs_index <- seq(1:nrow(d)) #unique sequential value to each row after ordering dataframe by timestamp
 d$succeed <- ifelse(d$Event=='sch'| d$Event=='scms' | d$Event=='scmt', 1 , 0) # column of 1/0 succeed for behavior
 d$technique <- sub(".", "", d$Event)   #trim 1st charachter 
@@ -67,4 +82,60 @@ for(i in 2:max(d$date_index)){
   }
 
 dev.off()
+
+#create foraging bout for each time an individual updates personal info // this is time series that is looped over
+d$forg_bout <- rep(0,nrow(d))
+ff <- rep(0,length(unique(d$ID_actor)))
+for (r in 1:nrow(d)) {
+  for(i in 1:length(unique(d$ID_actor))) {
+    if( d[r,"ID_actor_index"]==i){
+      ff[i] <-ff[i] + 1
+      d$forg_bout[r] <- ff[i]
+    }
+  }
+}
+beep(5)
+
+
+####Create Blank Social Matrix to Populate at each timestep
+
+## make an array as wide as the number of foraging individuals and long as the number of obsetrvations // think about both groups later
+o_freq <- array(0 , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
+str(o_freq)
+# o_age <- o_coho <- o_kin <- array(NA,dim=c(nrow(d),length(unique(d$mono_index)),6 ))
+
+foc <- data.frame("ID_actor" = as.vector(sort(unique(d$ID_actor))), "ID_actor_index" = as.integer(as.factor(as.vector(sort(unique(d$ID_actor))))))
+
+#double check code
+for( nobs in 1:nrow(d) ){
+  for (i in 1:nrow(foc)){
+    if (
+          grepl(foc[i,1],d[nobs,"ID_attending1"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending2"])==TRUE ||
+           grepl(foc[i,1],d[nobs,"ID_attending3"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending4"])==TRUE ||
+           grepl(foc[i,1],d[nobs,"ID_attending5"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending6"])==TRUE ||
+           grepl(foc[i,1],d[nobs,"ID_attending7"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending8"])==TRUE ||
+           grepl(foc[i,1],d[nobs,"ID_attending9"])==TRUE || grepl(foc[i,1],d[nobs,"ID_Attending10"])==TRUE ||
+           grepl(foc[i,1],d[nobs,"ID_Attending11"])==TRUE #case difference in 10 and 11 not a mistake
+         ){
+      o_freq[nobs,i,] <- 0 #assigns a 0 to all options if individual i is observing foraging bout nobs
+      o_freq[nobs,i,d$technique_index[nobs]] <- 1 #assigns a 1 observed option for individual i is observing foraging bout nobs
+      # # o_age[nobs,i,] <- 0 #assigns age of forager to social cue
+      # o_age[nobs,i,d$TECH_i[nobs]] <- ageyears(demo$dob[demo$mono==d$mono[nobs]] , d$date[nobs]) #assigns a 1 observed option for individual i is observing foraging bout nobs
+      # # o_coho[nobs,i,] <- 0 #assigns age of forager to social cue
+      # o_coho[nobs,i,d$TECH_i[nobs]] <- agecoho(demo$dob[demo$mono==d$mono[nobs]] , demo$dob[demo$mono==foc[i,1]]) #assigns a 1 observed option for individual i is observing foraging bout nobs
+      # if ( identical( demo$mom[demo$mono==d$mono[nobs]] , demo$mom[demo$mono==foc[i,1]] ) | identical(  demo$mom[demo$mono==foc[i,1]] , d$mono[nobs] ) ){
+      #   o_kin[nobs,i,] <- 0 
+      #   o_kin[nobs,i,d$TECH_i[nobs]] <- 1 
+        #commented out zeros just takes mean of all observed values at each option, will plug in zeros at end, 
+        #this helps so a rare behavior made by an individual with a certain cue does not loose value becaue 0 go into average
+      
+    }	
+  }
+}
+
+beep(3)
+
+o_freq[,,2]
+
+
 
