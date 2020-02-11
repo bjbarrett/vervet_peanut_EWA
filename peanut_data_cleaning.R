@@ -15,8 +15,8 @@ dnoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/Data_peanuts_exp
 dkubu <- dkubu[1:304,] #drop NA on tail of datasheet
 ILVKubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/ILV_Kubu_2018.csv", header=T, sep=",")
 ILVNoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/ILV_Noha_2018.csv", header=T, sep=",")
-KinNoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_noha_2018.csv", header=T, sep=",")
-KinKubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_kubu_2018.csv", header=T, sep=",")
+KinNoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_noha_trunc_2018.csv", header=T, sep=",")
+KinKubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_kubu_2018.csv", header=T, sep=",") #need to trncate still
 #merge ILV to Data
 dnoha  <- merge(dnoha,ILVNoha, by="ID_actor")
 dkubu  <- merge(dkubu,ILVKubu, by="ID_actor")
@@ -30,6 +30,10 @@ sort(unique(ILVNoha$ID_actor))
 
 d <- dnoha #only analyze noha
 d$ID_all_index <- as.integer(d$ID_actor) #index for all 30 individuals, need to see if this matches rank + sex files
+d$male <- ifelse(d$Sex=="M" , 1 , 0)
+d$female <- ifelse(d$Sex=="F" , 1 , 0)
+d$adult <- ifelse(d$Age=="A" , 1 , 0)
+
 ###get rows where behaviors of interest are present
 d <- droplevels(subset(dnoha, subset = Event %in% c('ach','acms','acmt','sch','scms','scmt') ))
 
@@ -101,10 +105,12 @@ beep(5)
 
 ## make an array as wide as the number of foraging individuals and long as the number of obsetrvations // think about both groups later
 o_freq <- array(0 , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
-str(o_freq)
+o_pay <- o_rank <- o_kin <- o_sex <- array(NA , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
+
 # o_age <- o_coho <- o_kin <- array(NA,dim=c(nrow(d),length(unique(d$mono_index)),6 ))
 
 foc <- data.frame("ID_actor" = as.vector(sort(unique(d$ID_actor))), "ID_actor_index" = as.integer(as.factor(as.vector(sort(unique(d$ID_actor))))))
+foc <- merge (foc,ILVNoha)
 
 #double check code
 for( nobs in 1:nrow(d) ){
@@ -119,23 +125,22 @@ for( nobs in 1:nrow(d) ){
          ){
       o_freq[nobs,i,] <- 0 #assigns a 0 to all options if individual i is observing foraging bout nobs
       o_freq[nobs,i,d$technique_index[nobs]] <- 1 #assigns a 1 observed option for individual i is observing foraging bout nobs
-      # # o_age[nobs,i,] <- 0 #assigns age of forager to social cue
-      # o_age[nobs,i,d$TECH_i[nobs]] <- ageyears(demo$dob[demo$mono==d$mono[nobs]] , d$date[nobs]) #assigns a 1 observed option for individual i is observing foraging bout nobs
-      # # o_coho[nobs,i,] <- 0 #assigns age of forager to social cue
-      # o_coho[nobs,i,d$TECH_i[nobs]] <- agecoho(demo$dob[demo$mono==d$mono[nobs]] , demo$dob[demo$mono==foc[i,1]]) #assigns a 1 observed option for individual i is observing foraging bout nobs
-      # if ( identical( demo$mom[demo$mono==d$mono[nobs]] , demo$mom[demo$mono==foc[i,1]] ) | identical(  demo$mom[demo$mono==foc[i,1]] , d$mono[nobs] ) ){
-      #   o_kin[nobs,i,] <- 0 
-      #   o_kin[nobs,i,d$TECH_i[nobs]] <- 1 
-        #commented out zeros just takes mean of all observed values at each option, will plug in zeros at end, 
-        #this helps so a rare behavior made by an individual with a certain cue does not loose value becaue 0 go into average
-      
+      o_pay[nobs,i,d$technique_index[nobs]] <- d$succeed[nobs] #adds a 1 to observations of a technique where a success was observed, 0 where failure with tecnique
+      #fix below when multiple groups in dataset to adjust max in both groups
+      #o_rank[nobs,i,d$technique_index[nobs]] <- 0
+      o_rank[nobs,i,d$technique_index[nobs]] <- ( (length(unique(ILVNoha$ID_actor)) + 1 - d$Rank[nobs] ) ) /  length(unique(ILVNoha$ID_actor)) 
+      #o_sex[nobs,i,] <- 0 # this works in 1/0 cases when there arent all zeros
+      o_sex[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]==foc$Sex[i] , 1 , NA) # if sex at observation is same as sex of audience member, give 1, otherwise NA
+      #for NA colums when calculating means sum w/in category over sums across all categories
+      o_kin[nobs,i,d$technique_index[nobs]] <- KinNoha[i, 1 + d$ID_actor_index[nobs]]
     }	
   }
 }
-
-beep(3)
-
-o_freq[,,2]
+beep(4)
 
 
+o_sex[1:20,,2]
+o_freq[1:20,,2]
+o_pay[1:20,,2]
+o_kin[1:20,,2]
 
