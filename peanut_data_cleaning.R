@@ -104,8 +104,8 @@ beep(5)
 ####Create Blank Social Matrix to Populate at each timestep
 
 ## make an array as wide as the number of foraging individuals and long as the number of obsetrvations // think about both groups later
-o_freq <- array(0 , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
-o_pay <- o_rank <- o_kin <- o_sex <- array(NA , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
+o_freq <- o_sex <- o_fem <- array(0 , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
+o_pay <- o_rank <- o_kin  <- array(NA , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
 
 # o_age <- o_coho <- o_kin <- array(NA,dim=c(nrow(d),length(unique(d$mono_index)),6 ))
 
@@ -116,31 +116,82 @@ foc <- merge (foc,ILVNoha)
 for( nobs in 1:nrow(d) ){
   for (i in 1:nrow(foc)){
     if (
-          grepl(foc[i,1],d[nobs,"ID_attending1"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending2"])==TRUE ||
+           grepl(foc[i,1],d[nobs,"ID_attending1"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending2"])==TRUE ||
            grepl(foc[i,1],d[nobs,"ID_attending3"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending4"])==TRUE ||
            grepl(foc[i,1],d[nobs,"ID_attending5"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending6"])==TRUE ||
            grepl(foc[i,1],d[nobs,"ID_attending7"])==TRUE || grepl(foc[i,1],d[nobs,"ID_attending8"])==TRUE ||
            grepl(foc[i,1],d[nobs,"ID_attending9"])==TRUE || grepl(foc[i,1],d[nobs,"ID_Attending10"])==TRUE ||
            grepl(foc[i,1],d[nobs,"ID_Attending11"])==TRUE #case difference in 10 and 11 not a mistake
          ){
-      o_freq[nobs,i,] <- 0 #assigns a 0 to all options if individual i is observing foraging bout nobs
-      o_freq[nobs,i,d$technique_index[nobs]] <- 1 #assigns a 1 observed option for individual i is observing foraging bout nobs
+      o_freq[nobs,i,] <- 0 #assigns a 0 to all options if individual i is observing foraging bout nobs, ok for sums
+      o_freq[nobs,i,d$technique_index[nobs]] <- 1 #assigns a 1 to observed option for individual i is observing foraging bout nobs
       o_pay[nobs,i,d$technique_index[nobs]] <- d$succeed[nobs] #adds a 1 to observations of a technique where a success was observed, 0 where failure with tecnique
       #fix below when multiple groups in dataset to adjust max in both groups
-      #o_rank[nobs,i,d$technique_index[nobs]] <- 0
-      o_rank[nobs,i,d$technique_index[nobs]] <- ( (length(unique(ILVNoha$ID_actor)) + 1 - d$Rank[nobs] ) ) /  length(unique(ILVNoha$ID_actor)) 
-      #o_sex[nobs,i,] <- 0 # this works in 1/0 cases when there arent all zeros
-      o_sex[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]==foc$Sex[i] , 1 , NA) # if sex at observation is same as sex of audience member, give 1, otherwise NA
+      o_rank[nobs,i,d$technique_index[nobs]] <-  1/d$Rank[nobs] 
+      # o_rank[nobs,i,d$technique_index[nobs]] <- ( (length(unique(ILVNoha$ID_actor)) + 1 - d$Rank[nobs] ) ) /  length(unique(ILVNoha$ID_actor)) #assigns values to each actor--1 is highest individual, close to zero is no individual
+      o_sex[nobs,i,] <- 0 # this works in 1/0 cases when there arent all zeros
+      o_sex[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]==foc$Sex[i] , 1 , 0) # if sex at observation is same as sex of audience member, give 1, otherwise NA
       #for NA colums when calculating means sum w/in category over sums across all categories
-      o_kin[nobs,i,d$technique_index[nobs]] <- KinNoha[i, 1 + d$ID_actor_index[nobs]]
+      o_fem[nobs,i,] <- 0 # this works in 1/0 cases when there arent all zeros
+      o_fem[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]=="F" , 1 , 0) #copy only females
+      o_kin[nobs,i,d$technique_index[nobs]] <- KinNoha[i, 1 + d$ID_actor_index[nobs]] #input r value
+      
     }	
   }
 }
 beep(4)
 
 
-o_sex[1:20,,2]
-o_freq[1:20,,2]
-o_pay[1:20,,2]
-o_kin[1:20,,2]
+# o_sex[1:20,,2]
+# o_freq[1:20,,2]
+# o_pay[1:20,,2]
+# o_kin[1:20,,2]
+# o_kin[1:50,7,]
 
+
+###frequency dependent learning
+d$s1 <- d$s2 <- d$s3  <- 66 #set up colums for frequency dependene where social info is sum between timesteps
+###kin biases
+d$k1 <- d$k2 <- d$k3 <- d$k4 <- d$k5 <- d$k6 <- 66 
+
+#add social info into dataframe
+
+win_width <- 20*60 #social info memory window in seconds
+
+min(d$obs_index[ as.numeric(as.duration(d$timestamp[200] - d$timestamp)) <= win_width ])
+
+for (nobs in 1:nrow(d)){
+  #zz<-min(d$obs_index[d$Date==d$Date[nobs]]) #starts on the same day and counts from there
+  zz <- min(d$obs_index[as.numeric(as.duration(d$timestamp[nobs] - d$timestamp)) <= win_width ]) #what is minimal value or earliest observation that occured within the window width
+  
+  d$freq1[nobs] <- sum( o_freq[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 1 ] )
+  d$freq2[nobs] <- sum( o_freq[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 2 ] ) 
+  d$freq3[nobs] <- sum( o_freq[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 3 ] ) 
+  d$fem1[nobs] <- sum( o_fem[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 1 ] )
+  d$fem2[nobs] <- sum( o_fem[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 2 ] ) 
+  d$fem3[nobs] <- sum( o_fem[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 3 ] ) 
+  d$sex1[nobs] <- sum( o_sex[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 1 ] )
+  d$sex2[nobs] <- sum( o_sex[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 2 ] ) 
+  d$sex3[nobs] <- sum( o_sex[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 3 ] ) 
+  d$pay1[nobs] <- mean( o_pay[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 1 ] , na.rm = TRUE)
+  d$pay2[nobs] <- mean( o_pay[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 2 ] , na.rm = TRUE) 
+  d$pay3[nobs] <- mean( o_pay[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 3 ] , na.rm = TRUE) 
+  d$kin1[nobs] <- mean( o_kin[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 1 ] , na.rm = TRUE)
+  d$kin2[nobs] <- mean( o_kin[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 2 ] , na.rm = TRUE) 
+  d$kin3[nobs] <- mean( o_kin[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 3 ] , na.rm = TRUE) 
+  d$rank1[nobs] <- mean( o_rank[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 1 ] , na.rm = TRUE)
+  d$rank2[nobs] <- mean( o_rank[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 2 ] , na.rm = TRUE) 
+  d$rank3[nobs] <- mean( o_rank[ zz : (d$obs_index[nobs] - 1) , d$ID_actor_index[nobs] , 3 ] , na.rm = TRUE) 
+}
+
+beep(2)
+
+d$pay3[is.nan(d$pay3)] <- 0
+d$pay2[is.nan(d$pay2)] <- 0
+d$pay1[is.nan(d$pay1)] <- 0
+d$kin3[is.nan(d$kin3)] <- 0
+d$kin2[is.nan(d$kin2)] <- 0
+d$kin1[is.nan(d$kin1)] <- 0
+d$rank3[is.nan(d$rank3)] <- 0
+d$rank2[is.nan(d$rank2)] <- 0
+d$rank1[is.nan(d$rank1)] <- 0
