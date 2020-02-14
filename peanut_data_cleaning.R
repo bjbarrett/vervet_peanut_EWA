@@ -150,7 +150,7 @@ beep(4)
 
 #add social info into dataframe
 
-win_width <- 30*60 #social info memory window in seconds (num_min*60secs)
+win_width <- 5*60 #social info memory window in seconds (num_min*60secs)
 
 
 for (nobs in 1:nrow(d)){
@@ -179,7 +179,7 @@ for (nobs in 1:nrow(d)){
 
 beep(2)
 
-#get rid of NaNs and make value zero so it does not affect behaviort
+#get rid of NaNs and make value zero so it does not affect behavior
 d$pay3[is.nan(d$pay3)] <- 0
 d$pay2[is.nan(d$pay2)] <- 0
 d$pay1[is.nan(d$pay1)] <- 0
@@ -188,6 +188,10 @@ d$kin2[is.nan(d$kin2)] <- 0
 d$kin1[is.nan(d$kin1)] <- 0
 d$rank3[is.nan(d$rank3)] <- 0
 d$rank2[is.nan(d$rank2)] <- 0
+d$rank1[is.nan(d$rank1)] <- 0
 
-write.csv(d,"Peanut_Vervet_Noha_30min.csv")
+write.csv(d,"Peanut_Vervet_Noha_5min.csv")
+
+
+
 d$rank1[is.nan(d$rank1)] <- 0
