@@ -17,6 +17,7 @@ ILVKubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/ILV_Kubu_2018.
 ILVNoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/ILV_Noha_2018.csv", header=T, sep=",")
 KinNoha <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_noha_trunc_2018.csv", header=T, sep=",")
 KinKubu <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/raw_data/kinship_matrix_kubu_2018.csv", header=T, sep=",") #need to trncate still
+
 #merge ILV to Data
 dnoha  <- merge(dnoha,ILVNoha, by="ID_actor")
 dkubu  <- merge(dkubu,ILVKubu, by="ID_actor")
@@ -104,10 +105,8 @@ beep(5)
 ####Create Blank Social Matrix to Populate at each timestep
 
 ## make an array as wide as the number of foraging individuals and long as the number of obsetrvations // think about both groups later
-o_freq <- o_sex <- o_fem <- array(0 , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
-o_pay <- o_rank <- o_kin  <- array(NA , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) )
-
-# o_age <- o_coho <- o_kin <- array(NA,dim=c(nrow(d),length(unique(d$mono_index)),6 ))
+o_freq <- o_sex <- o_fem <- array(0 , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) ) ##sum values where we tally up ones
+o_pay <- o_rank <- o_kin  <- array(NA , dim=c( nrow(d) , length(unique(d$ID_actor)) , max(d$technique_index) ) ) ##mean or median values, remove NaNs later
 
 foc <- data.frame("ID_actor" = as.vector(sort(unique(d$ID_actor))), "ID_actor_index" = as.integer(as.factor(as.vector(sort(unique(d$ID_actor))))))
 foc <- merge (foc,ILVNoha)
@@ -149,16 +148,10 @@ beep(4)
 # o_kin[1:50,7,]
 
 
-###frequency dependent learning
-d$s1 <- d$s2 <- d$s3  <- 66 #set up colums for frequency dependene where social info is sum between timesteps
-###kin biases
-d$k1 <- d$k2 <- d$k3 <- d$k4 <- d$k5 <- d$k6 <- 66 
-
 #add social info into dataframe
 
-win_width <- 20*60 #social info memory window in seconds
+win_width <- 30*60 #social info memory window in seconds (num_min*60secs)
 
-min(d$obs_index[ as.numeric(as.duration(d$timestamp[200] - d$timestamp)) <= win_width ])
 
 for (nobs in 1:nrow(d)){
   #zz<-min(d$obs_index[d$Date==d$Date[nobs]]) #starts on the same day and counts from there
@@ -186,6 +179,7 @@ for (nobs in 1:nrow(d)){
 
 beep(2)
 
+#get rid of NaNs and make value zero so it does not affect behaviort
 d$pay3[is.nan(d$pay3)] <- 0
 d$pay2[is.nan(d$pay2)] <- 0
 d$pay1[is.nan(d$pay1)] <- 0
@@ -194,4 +188,6 @@ d$kin2[is.nan(d$kin2)] <- 0
 d$kin1[is.nan(d$kin1)] <- 0
 d$rank3[is.nan(d$rank3)] <- 0
 d$rank2[is.nan(d$rank2)] <- 0
+
+write.csv(d,"Peanut_Vervet_Noha_30min.csv")
 d$rank1[is.nan(d$rank1)] <- 0
