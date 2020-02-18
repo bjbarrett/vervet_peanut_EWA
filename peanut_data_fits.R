@@ -24,9 +24,10 @@ datalist_i <- list(
 
 parlistI=c( "lambda","phi_i", "dev" , "log_lik" , "alpha" , "a_indiv" , "sigma_indiv")
 
-fit_i = stan(file = 'ewa_individual.stan', data = datalist_i ,iter = 200, warmup=100, chains=2,  pars=parlistI , control=list(adapt_delta=0.95) , cores=2)
+fit_i = stan(file = 'ewa_individual.stan', data = datalist_i ,iter = 4000, warmup=2000, chains=2,  pars=parlistI , control=list(adapt_delta=0.95) , cores=2)
 
 precis(fit_i , depth=2 , pars='a_indiv')
+traceplot(fit_i , pars='alpha')
 
 ##frequency dependent learning
 datalist_s <- list(
@@ -36,20 +37,26 @@ datalist_s <- list(
   tech = d$technique_index,                                                            #technique index
   y = cbind( d$y1 , d$y2 , d$y3 ),                                                    #individual payoff at timestep (1 if succeed, 0 is fail)
   s = cbind(d$freq1 , d$freq2 , d$freq3 ),                                                     #observed counts of all K techniques to individual J (frequency-dependence)
-  ps = cbind(d$pay1 , d$pay2 , d$pay3 ),                                                     #observed counts of all K techniques to individual J (frequency-dependence)
+  q = cbind(d$pay1 , d$pay2 , d$pay3 ),                                                     #observed counts of all K techniques to individual J (frequency-dependence)
   bout = d$forg_bout,#bout is forg index here                                         #processing bout unique to individual J
   id = d$ID_actor_index ,                                           #individual ID
   N_effects=3                                                                        #number of parameters to estimates
 )
 
-parlistF=c("a_id" , "mu", "lambda", "phi_i" , "gamma_i" , "fconf_i"  , "dev" , "log_lik")
+parlistF=c("a_id" , "mu", "lambda", "Sigma" , "Rho", "dev" , "log_lik")
 
 ###frequency dependent
-fit_s = stan( file = 'ewa_freq.stan', data = datalist_s ,iter = 200, warmup=100, chains=2, control=list(adapt_delta=0.95))
+fit_s = stan( file = 'ewa_freq.stan', data = datalist_s ,iter = 2000, warmup=1000, chains=2, control=list(adapt_delta=0.99) , pars=parlistF, cores=2)
+precis(fit_s , depth=3 , pars=c('mu', 'a_id'))
+traceplot(fit_s , pars='mu')
+###payoff-bias
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+parlistP=c("a_id" , "mu", "lambda" , "Sigma" , "Rho", "dev" , "log_lik" )
+fit_pay = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 2000, warmup=1000, chains=2, control=list(adapt_delta=0.99) , pars=parlistP, cores=2)
 
-
-
-
+fit_i = stan(file = 'ewa_individual.stan', data = datalist_i ,iter = 4000, warmup=2000, chains=2,  pars=parlistI , control=list(adapt_delta=0.99) , cores=2)
+fit_s = stan( file = 'ewa_freq.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=2, control=list(adapt_delta=0.99) , pars=parlistF, cores=2)
+fit_pay = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=2, control=list(adapt_delta=0.99) , pars=parlistP, cores=2)
 
 ##################################################################
 #######Code to fit Model which we will comment out################
