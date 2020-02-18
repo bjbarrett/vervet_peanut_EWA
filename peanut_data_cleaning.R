@@ -117,16 +117,16 @@ o_freq <- o_sex <- o_fem <- array(0 , dim=c( nrow(d) , length(unique(ILV$ID_acto
 o_pay <- o_rank <- o_kin  <- array(NA , dim=c( nrow(d) , length(unique(ILV$ID_actor)) , max(d$technique_index) ) ) ##mean or median values, remove NaNs later
 ILV <- ILV[order(ILV$ID_actor),] #order by ID_actor 
 
-#double check code
 for( nobs in 1:nrow(d) ){
   for (i in 1:nrow(ILV)){
     if (
-           grepl(ILV[i,1],d[nobs,"ID_attending1"])==TRUE || grepl(ILV[i,1],d[nobs,"ID_attending2"])==TRUE ||
-           grepl(ILV[i,1],d[nobs,"ID_attending3"])==TRUE || grepl(ILV[i,1],d[nobs,"ID_attending4"])==TRUE ||
-           grepl(ILV[i,1],d[nobs,"ID_attending5"])==TRUE || grepl(ILV[i,1],d[nobs,"ID_attending6"])==TRUE ||
-           grepl(ILV[i,1],d[nobs,"ID_attending7"])==TRUE || grepl(ILV[i,1],d[nobs,"ID_attending8"])==TRUE ||
-           grepl(ILV[i,1],d[nobs,"ID_attending9"])==TRUE || grepl(ILV[i,1],d[nobs,"ID_Attending10"])==TRUE ||
-           grepl(ILV[i,1],d[nobs,"ID_Attending11"])==TRUE #case difference in 10 and 11 not a mistake
+           isTRUE(ILV[i,1]==d[nobs,"ID_attending1"] ) || isTRUE(ILV[i,1]==d[nobs,"ID_attending2"] ) ||
+           isTRUE(ILV[i,1]==d[nobs,"ID_attending3"] ) || isTRUE(ILV[i,1]==d[nobs,"ID_attending4"] ) ||
+           isTRUE(ILV[i,1]==d[nobs,"ID_attending5"] ) || isTRUE(ILV[i,1]==d[nobs,"ID_attending6"] ) ||
+           isTRUE(ILV[i,1]==d[nobs,"ID_attending7"] ) || isTRUE(ILV[i,1]==d[nobs,"ID_attending8"] ) ||
+           isTRUE(ILV[i,1]==d[nobs,"ID_attending9"] ) || isTRUE(ILV[i,1]==d[nobs,"ID_Attending10"] ) ||
+           isTRUE(ILV[i,1]==d[nobs,"ID_Attending11"] ) #case difference in 10 and 11 not a mistake
+           #don't use grepl if there are partial matches i.e. XIAN and XIA
          ){
       o_freq[nobs,i,] <- 0 #assigns a 0 to all options if individual i is observing foraging bout nobs, ok for sums
       o_freq[nobs,i,d$technique_index[nobs]] <- 1 #assigns a 1 to observed option for individual i is observing foraging bout nobs
@@ -141,7 +141,6 @@ for( nobs in 1:nrow(d) ){
       o_fem[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]=="F" , 1 , 0) #copy only females
       #o_kin[nobs,i,d$technique_index[nobs]] <- KinNoha[i, 1 + d$ID_actor_index[nobs]] #input r value
       o_kin[nobs,i,d$technique_index[nobs]] <- ifelse(ILV$group[i]=="Noha" , KinNoha[min(ILV$ID_noha_index[ILV$ID_all_index==i]), 1 + d$ID_noha_index[nobs]] , KinKubu[min(ILV$ID_kubu_index[ILV$ID_all_index==i]), 1 + d$ID_kubu_index[nobs]] )#input r value // this is crazy complicated, do an edge list in future
-   ###something off with kin bias######
      }	
   }
 }
@@ -158,13 +157,13 @@ beep(4)
 
 #add social info into dataframe
 
-win_width <- 5*60 #social info memory window in seconds (num_min*60secs)
+win_width <- 30*60 #social info memory window in seconds (num_min*60secs)
 
 
 for (nobs in 1:nrow(d)){
   #zz<-min(d$obs_index[d$Date==d$Date[nobs]]) #starts on the same day and counts from there
   zz <- min(d$obs_index[as.numeric(as.duration(d$timestamp[nobs] - d$timestamp)) <= win_width ]) #what is minimal value or earliest observation that occured within the window width
-  
+
   d$freq1[nobs] <- sum( o_freq[ zz : (d$obs_index[nobs] - 1) , d$ID_all_index[nobs] , 1 ] )
   d$freq2[nobs] <- sum( o_freq[ zz : (d$obs_index[nobs] - 1) , d$ID_all_index[nobs] , 2 ] ) 
   d$freq3[nobs] <- sum( o_freq[ zz : (d$obs_index[nobs] - 1) , d$ID_all_index[nobs] , 3 ] ) 
@@ -191,14 +190,13 @@ beep(2)
 d$pay3[is.nan(d$pay3)] <- 0
 d$pay2[is.nan(d$pay2)] <- 0
 d$pay1[is.nan(d$pay1)] <- 0
+
 d$kin3[is.nan(d$kin3)] <- 0
 d$kin2[is.nan(d$kin2)] <- 0
 d$kin1[is.nan(d$kin1)] <- 0
+
 d$rank3[is.nan(d$rank3)] <- 0
 d$rank2[is.nan(d$rank2)] <- 0
 d$rank1[is.nan(d$rank1)] <- 0
 
-write.csv(d,"Peanut_Vervet_5min.csv")
-
-
-
+write.csv(d,"Peanut_Vervet_30min.csv")
