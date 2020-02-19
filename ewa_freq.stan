@@ -33,7 +33,7 @@ model {
 
     //priors
     lambda ~ exponential(1);
-    mu ~ normal(0,1);
+    mu ~ normal(0,0.5);
     sigma ~ exponential(1);
     to_vector(zed) ~ normal(0,1);
     L_Rho ~ lkj_corr_cholesky(3);

@@ -42,6 +42,9 @@ datalist_s <- list(
   id = d$ID_actor_index ,                                           #individual ID
   N_effects=3                                                                        #number of parameters to estimates
 )
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+datalist_s$s <- datalist_s$s / max(datalist_s$s)
+
 
 parlistF=c("a_id" , "mu", "lambda", "Sigma" , "Rho", "dev" , "log_lik")
 
@@ -50,13 +53,15 @@ fit_s = stan( file = 'ewa_freq.stan', data = datalist_s ,iter = 2000, warmup=100
 precis(fit_s , depth=3 , pars=c('mu', 'a_id'))
 traceplot(fit_s , pars='mu')
 ###payoff-bias
-datalist_s$q <- datalist_s$q / max(datalist_s$q)
 parlistP=c("a_id" , "mu", "lambda" , "Sigma" , "Rho", "dev" , "log_lik" )
 fit_pay = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 2000, warmup=1000, chains=2, control=list(adapt_delta=0.99) , pars=parlistP, cores=2)
 
 fit_i = stan(file = 'ewa_individual.stan', data = datalist_i ,iter = 4000, warmup=2000, chains=2,  pars=parlistI , control=list(adapt_delta=0.99) , cores=2)
-fit_s = stan( file = 'ewa_freq.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=2, control=list(adapt_delta=0.99) , pars=parlistF, cores=2)
+fit_s = stan( file = 'ewa_freq.stan', data = datalist_s ,iter = 2000, warmup=1000, chains=2, control=list(adapt_delta=0.99) , pars=parlistF, cores=2)
 fit_pay = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=2, control=list(adapt_delta=0.99) , pars=parlistP, cores=2)
+traceplot(fit_pay , pars='mu')
+traceplot(fit_s , pars='mu')
+precis(fit_pay , depth=3 , pars=c('mu', 'a_id', 'Sigma','Rho'))
 
 ##################################################################
 #######Code to fit Model which we will comment out################
@@ -70,3 +75,7 @@ fit_pay = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=20
 #     iter = 2000, warmup=1000 , chains=3, cores=3,
 #     control=list( adapt_delta=0.98 ) ,pars=parlistglobalage )
 
+c <- rnorm(20000,mean=0,sd=0.5 )
+dens(c)
+dens(exp(c))
+median(exp(c))
