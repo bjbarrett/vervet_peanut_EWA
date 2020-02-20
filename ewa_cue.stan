@@ -22,7 +22,6 @@ parameters {
 }
 transformed parameters{
     matrix[J,N_effects] a_id;
-    // put scales and correlations back in
     a_id = (diag_pre_multiply(sigma,L_Rho) * zed)';
 }
 model {
@@ -88,7 +87,6 @@ model {
 }//end of model
 
 generated quantities{
-    real dev;       //deviance
     vector[N] log_lik;
     vector[K] AC;       // attraction scores
     real logPrA;        // individual learning temp
@@ -104,7 +102,6 @@ generated quantities{
     Rho = L_Rho * L_Rho';
 
 
-    dev = 0;  
     for ( i in 1:N ) {
         //update attractions
         for ( j in 1:K ) {
@@ -137,15 +134,12 @@ generated quantities{
                 // compute frequency cue
                 PrS = lin_mod[tech[i]]/sum(lin_mod);
 
-                dev = dev + -2*( log( (1-gamma)*exp(logPrA) + gamma*PrS ) );
                 log_lik[i] = ( log( (1-gamma)*exp(logPrA) + gamma*PrS ) ) ;   
 
             } else {
-                 dev = dev + -2*( logPrA );
                  log_lik[i] = (logPrA);
             }
         } else {
-                 dev = dev + -2*( logPrA );
                  log_lik[i] = (logPrA);         }
      }//i  
 

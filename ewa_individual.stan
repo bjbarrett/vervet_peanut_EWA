@@ -42,7 +42,6 @@ for ( i in 1:N ) {
 }
 
 generated quantities {
-real dev; // deviance
 vector[K] AC;       // attraction scores
 real logPrA;        // individual learning temp
 real temp;		// stickiness parameter
@@ -52,9 +51,6 @@ vector[N] log_lik;
 real Sigma;
 Sigma = sigma;
 
-
-
-dev= 0;
 for ( i in 1:N ) {
 //update attractions
 	for ( j in 1:K ) {
@@ -66,7 +62,6 @@ for ( i in 1:N ) {
 		}
 	}//j
 	logPrA= lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
-	dev= dev + -2*logPrA;
 	log_lik[i]= logPrA ;
 
 	}//i

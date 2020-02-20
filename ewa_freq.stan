@@ -10,6 +10,7 @@ data {
     int id[N];          // player id
     int N_effects;      // number of learning parameters to estimate
 }
+
 parameters {
     real<lower=0> lambda;                   // sensitivity to individual payoffs
     vector[N_effects] mu;                   // average effects
@@ -17,11 +18,12 @@ parameters {
     cholesky_factor_corr[N_effects] L_Rho;  // correlation matrix
     vector<lower=0>[N_effects] sigma;       // standard deviations
 }
+
 transformed parameters{
     matrix[J,N_effects] a_id;
-    // put scales and correlations back in
     a_id = (diag_pre_multiply(sigma,L_Rho) * zed)';
 }
+
 model {
     vector[K] AC;       // attraction scores
     real logPrA;        // individual learning temp
@@ -33,7 +35,7 @@ model {
 
     //priors
     lambda ~ exponential(1);
-    mu ~ normal(0,0.5);
+    mu ~ normal(0,1);
     sigma ~ exponential(1);
     to_vector(zed) ~ normal(0,1);
     L_Rho ~ lkj_corr_cholesky(3);
@@ -81,7 +83,6 @@ model {
 }//end of model
 
 generated quantities{
-    real dev;       //deviance
     vector[N] log_lik;
     vector[K] AC;       // attraction scores
     real logPrA;        // individual learning temp
@@ -96,8 +97,6 @@ generated quantities{
     Sigma = sigma;
     Rho = L_Rho * L_Rho';
 
-
-    dev=0;
         for ( i in 1:N ) {
         //update attractions
         for ( j in 1:K ) {
@@ -122,18 +121,14 @@ generated quantities{
         if ( bout[i] > 1 ) {
             if (sum( s[i] ) > 0 ) {
 
-
                 // compute frequency cue
                 for ( j in 1:K ) s_temp[j] = pow(s[i,j],fconf);
                 PrS = s_temp[tech[i]]/sum(s_temp);
                 
-                dev = dev + -2*( log( (1-gamma)*exp(logPrA) + gamma*PrS ) );
                 log_lik[i] = ( log( (1-gamma)*exp(logPrA) + gamma*PrS ) ) ;  
             } else {
-                 dev = dev + -2*( logPrA );
                  log_lik[i] = (logPrA);            }
         } else {
-                 dev = dev + -2*( logPrA );
                  log_lik[i] = (logPrA);         }
      }//i  
 
