@@ -14,13 +14,17 @@ data {
     int bout[N];        // bout or fruit
     int id[N];          // player id
     int N_effects;      // number of learning parameters to estimate
+    int male[N];
+    int adult[N];
 }
 
 parameters {
     vector[N_effects] mu;                   // average effects
+    vector[N_effects] delta_a;               // age index variable
+    vector[N_effects] delta_m;               // sex index variable
+    vector<lower=0>[N_effects] sigma;       // standard deviations
     matrix[N_effects,J] zed;                // individual z-scores
     cholesky_factor_corr[N_effects] L_Rho;  // correlation matrix
-    vector<lower=0>[N_effects] sigma;       // standard deviations
 
 }
 transformed parameters{
@@ -54,6 +58,9 @@ model {
     mu[8] ~ normal(0,1);
     mu[9] ~ normal(0,1);
 
+    delta_a ~ normal(0,0.5);
+    delta_m ~ normal(0,0.5);
+
     sigma ~ exponential(1);
     to_vector(zed) ~ normal(0,1);
     L_Rho ~ lkj_corr_cholesky(3);
@@ -70,15 +77,15 @@ model {
 
         if ( bout[i]==1 ) {
             // calculate new individual's parameter values
-            lambda = exp(mu[1]+  a_id[id[i],1]);
-            phi = inv_logit( mu[2] + a_id[id[i],2]   );
-            gamma = inv_logit( mu[3] + a_id[id[i],3] );
-            fc = exp( mu[4] + a_id[id[i],4]   ); //freq-dep
-            bf =  mu[5] + a_id[id[i],5] ; // female
-            bk =  mu[6] + a_id[id[i],6] ; // kin
-            bp =  mu[7] + a_id[id[i],7] ; // payoff
-            br =  mu[8] + a_id[id[i],8] ; // rank
-            bx =  mu[9] + a_id[id[i],9] ; // same sex
+            lambda = exp( mu[1] +  a_id[id[i],1] + delta_a[1]*adult[i] + delta_m[1]*male[i] ) ;
+            phi = inv_logit( mu[2] + a_id[id[i],2] + delta_a[2]*adult[i] + delta_m[2]*male[i] );
+            gamma = inv_logit(mu[3] + a_id[id[i],3] + delta_a[3]*adult[i] + delta_m[3]*male[i]);
+            fc = exp(mu[4] + a_id[id[i],4] + delta_a[4]*adult[i] + delta_m[4]*male[i]);
+            bf =  mu[5] + a_id[id[i],5] + delta_a[5]*adult[i] + delta_m[5]*male[i] ; // female
+            bk =  mu[6] + a_id[id[i],6] + delta_a[6]*adult[i] + delta_m[6]*male[i] ; // kin
+            bp =  mu[7] + a_id[id[i],7] + delta_a[7]*adult[i] + delta_m[7]*male[i] ; // payoff
+            br =  mu[8] + a_id[id[i],8] + delta_a[8]*adult[i] + delta_m[8]*male[i] ; // rank
+            bx =  mu[9] + a_id[id[i],9] + delta_a[9]*adult[i] + delta_m[9]*male[i] ; // same sex
         }
 
         logPrA = lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
@@ -130,8 +137,7 @@ generated quantities{
 
     Rho = L_Rho * L_Rho';
 
-
-       for ( i in 1:N ) {
+ for ( i in 1:N ) {
         //update attractions
         for ( j in 1:K ) {
             if ( bout[i] > 1 ) {
@@ -143,16 +149,15 @@ generated quantities{
 
         if ( bout[i]==1 ) {
             // calculate new individual's parameter values
-            lambda = exp(mu[1]+  a_id[id[i],1]);
-            phi = inv_logit( mu[2] + a_id[id[i],2]   );
-            gamma = inv_logit( mu[3] + a_id[id[i],3] );
-            fc = exp( mu[4] + a_id[id[i],4]   ); //freq-dep
-            bf =  mu[5] + a_id[id[i],5] ; // female
-            bk =  mu[6] + a_id[id[i],6] ; // kin
-            bp =  mu[7] + a_id[id[i],7] ; // payoff
-            br =  mu[8] + a_id[id[i],8] ; // rank
-            bx =  mu[9] + a_id[id[i],9] ; // same sex
-
+            lambda = exp( mu[1] +  a_id[id[i],1] + delta_a[1]*adult[i] + delta_m[1]*male[i] ) ;
+            phi = inv_logit( mu[2] + a_id[id[i],2] + delta_a[2]*adult[i] + delta_m[2]*male[i] );
+            gamma = inv_logit(mu[3] + a_id[id[i],3] + delta_a[3]*adult[i] + delta_m[3]*male[i]);
+            fc = exp(mu[4] + a_id[id[i],4] + delta_a[4]*adult[i] + delta_m[4]*male[i]);
+            bf =  mu[5] + a_id[id[i],5] + delta_a[5]*adult[i] + delta_m[5]*male[i] ; // female
+            bk =  mu[6] + a_id[id[i],6] + delta_a[6]*adult[i] + delta_m[6]*male[i] ; // kin
+            bp =  mu[7] + a_id[id[i],7] + delta_a[7]*adult[i] + delta_m[7]*male[i] ; // payoff
+            br =  mu[8] + a_id[id[i],8] + delta_a[8]*adult[i] + delta_m[8]*male[i] ; // rank
+            bx =  mu[9] + a_id[id[i],9] + delta_a[9]*adult[i] + delta_m[9]*male[i] ; // same sex
         }
 
         logPrA = lambda*AC[tech[i]] - log_sum_exp( lambda*AC );

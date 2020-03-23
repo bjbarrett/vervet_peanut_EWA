@@ -10,14 +10,17 @@ data {
     int bout[N];        // bout or fruit
     int id[N];          // player id
     int N_effects;      // number of learning parameters to estimate
+    int male[N];
+    int adult[N];
 
 }
 parameters {
-    real<lower=0> lambda;                   // mutlinomial error parameter
     vector[N_effects] mu;                   // average effects
+    vector[N_effects] delta_a;               // age index variable
+    vector[N_effects] delta_m;               // sex index variable
+    vector<lower=0>[N_effects] sigma;       // standard deviations
     matrix[N_effects,J] zed;                // individual z-scores
     cholesky_factor_corr[N_effects] L_Rho;  // correlation matrix
-    vector<lower=0>[N_effects] sigma;       // standard deviations
 
 }
 transformed parameters{
@@ -29,14 +32,19 @@ model {
     real logPrA;        // individual learning temp
     real PrS;        // social learning temp
     vector[K] lin_mod;
-
+    real lambda;           // stickiness parameter
     real phi;           // stickiness parameter
     real gamma;         // social weight
     real beta;     // conform exponent
 
     //priors
-    lambda ~ exponential(1);
-    mu ~ normal(0,1);
+    mu[1] ~ normal(0,0.6);
+    mu[2] ~ normal(0,1);
+    mu[3] ~ normal(0,1);
+    mu[4] ~ normal(0,1);
+    delta_a ~ normal(0,0.5);
+    delta_m ~ normal(0,0.5);
+
     sigma ~ exponential(1);
     to_vector(zed) ~ normal(0,1);
     L_Rho ~ lkj_corr_cholesky(3);
@@ -53,10 +61,10 @@ model {
 
         if ( bout[i]==1 ) {
             // calculate new individual's parameter values
-            phi = inv_logit( mu[1] + a_id[id[i],1]   );
-            gamma = inv_logit( mu[2] + a_id[id[i],2] );
-            beta = ( mu[3] + a_id[id[i],3] );
-
+            lambda = exp( mu[1] +  a_id[id[i],1] + delta_a[1]*adult[i] + delta_m[1]*male[i] ) ;
+            phi = inv_logit( mu[2] + a_id[id[i],2] + delta_a[2]*adult[i] + delta_m[2]*male[i] );
+            gamma = inv_logit(mu[3] + a_id[id[i],3] + delta_a[3]*adult[i] + delta_m[3]*male[i]);
+            beta = mu[4] + a_id[id[i],4] + delta_a[4]*adult[i] + delta_m[4]*male[i];
         }
 
         logPrA = lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
@@ -92,13 +100,12 @@ generated quantities{
     real logPrA;        // individual learning temp
     real PrS;        // social learning temp
     vector[K] lin_mod;
+    real lambda;           // stickiness parameter
     real phi;           // stickiness parameter
     real gamma;         // social weight
     real beta;     // conform 
     matrix[N_effects,N_effects] Rho;
-    vector[N_effects] Sigma;
 
-    Sigma = sigma;
     Rho = L_Rho * L_Rho';
 
 
@@ -114,9 +121,10 @@ generated quantities{
 
         if ( bout[i]==1 ) {
             // calculate new individual's parameter values
-            phi = inv_logit( mu[1] + a_id[id[i],1]   );
-            gamma = inv_logit( mu[2] + a_id[id[i],2] );
-            beta = ( mu[3] + a_id[id[i],3] );
+            lambda = exp( mu[1] +  a_id[id[i],1] + delta_a[1]*adult[i] + delta_m[1]*male[i] ) ;
+            phi = inv_logit( mu[2] + a_id[id[i],2] + delta_a[2]*adult[i] + delta_m[2]*male[i] );
+            gamma = inv_logit(mu[3] + a_id[id[i],3] + delta_a[3]*adult[i] + delta_m[3]*male[i]);
+            beta = mu[4] + a_id[id[i],4] + delta_a[4]*adult[i] + delta_m[4]*male[i];
 
         }
 

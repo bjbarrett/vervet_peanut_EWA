@@ -2,13 +2,13 @@ library(rstan)
 library(rethinking)
 
 ##if running locally, choose which model files
-setwd("~/Dropbox/Vervets/vervet_peanut_EWA/log_lik_no_slopes")
-d <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/Peanut_Vervet_10min.csv")
+setwd("~/Dropbox/Vervets/vervet_peanut_EWA/slope models")
+d <- read.csv("~/Dropbox/Vervets/vervet_peanut_EWA/Peanut_Vervet_20min.csv")
 options(mc.cores = parallel::detectCores())
 
 ##if running on server
 options(mc.cores = parallel::detectCores())
-d <- read.csv("~/Peanut_Vervet_10min.csv")
+d <- read.csv("~/Peanut_Vervet_30min.csv")
 
 ###run if dropping Kubu for speed and diagnosis stuff
 # d <- droplevels(d[d$group=="Noha",])
@@ -29,31 +29,47 @@ parlistI=c("a_id" , "mu", "lambda", "sigma" , "log_lik")
 parlistS=c("a_id" , "mu", "lambda", "sigma" ,"Rho" , "log_lik")
 
 datalist_i <- list(
-  N = nrow(d),                                  #length of dataset
-  J = length( unique(d$ID_actor_index) ),       #number of individuals
-  K = max(d$technique_index),                   #number of processing techniques
-  tech = d$technique_index,                     #technique index
-  y = cbind( d$y1 , d$y2 , d$y3 ),              #individual payoff at timestep (1 if succeed, 0 is fail)
-  bout = d$forg_bout,                          #processing bout unique to individual J
-  id = d$ID_actor_index ,                      #individual ID
-  N_effects=1                                  #number of parameters to estimates
+N = nrow(d),                                  #length of dataset
+J = length( unique(d$ID_actor_index) ),       #number of individuals
+K = max(d$technique_index),                   #number of processing techniques
+tech = d$technique_index,                     #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),              #individual payoff at timestep (1 if succeed, 0 is fail)
+bout = d$forg_bout,                          #processing bout unique to individual J
+id = d$ID_actor_index ,                      #individual ID
+N_effects=1                                  #number of parameters to estimates
 )
 
 ##frequency dependent learning
 datalist_s <- list(
-  N = nrow(d),                            #length of dataset
-  J = length( unique(d$ID_actor_index) ),  #number of individuals
-  K = max(d$technique_index),         #number of processing techniques
-  tech = d$technique_index,           #technique index
-  y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
-  s = cbind(d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
-  q = cbind(d$pay1 , d$pay2 , d$pay3 ),
-  bout = d$forg_bout,#bout is forg index  unique to individual J
-  id = d$ID_actor_index ,                                           #individual ID
-  N_effects=3                                                                        #number of parameters to estimates
+N = nrow(d),                            #length of dataset
+J = length( unique(d$ID_actor_index) ),  #number of individuals
+K = max(d$technique_index),         #number of processing techniques
+tech = d$technique_index,           #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
+s = cbind(d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
+q = cbind(d$pay1 , d$pay2 , d$pay3 ),
+bout = d$forg_bout,#bout is forg index  unique to individual J
+id = d$ID_actor_index ,                                           #individual ID
+N_effects=3                                                                        #number of parameters to estimates
 )
 datalist_s$q <- datalist_s$q / max(datalist_s$q)
 datalist_s$s <- datalist_s$s/ max(datalist_s$s)
+
+datalist_s <- list(
+N = nrow(d),                            #length of dataset
+J = length( unique(d$ID_actor_index) ),  #number of individuals
+K = max(d$technique_index),         #number of processing techniques
+tech = d$technique_index,           #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
+s = cbind(d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
+q = cbind(d$pay1 , d$pay2 , d$pay3 ),
+bout = d$forg_bout,#bout is forg index  unique to individual J
+id = d$ID_actor_index ,                                           #individual ID
+N_effects=3                                                                        #number of parameters to estimates
+)
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+datalist_s$s <- datalist_s$s/ max(datalist_s$s)
+
 
 ##model fits
 fit_i = stan( file = 'ewa_individual.stan', data = datalist_i ,iter = 6000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.9) , pars=parlistI, refresh=50)
@@ -95,28 +111,28 @@ setwd("~/Dropbox/Vervets/vervet_peanut_EWA/log_lik_no_slopes_varyL")
 parlistS=c("a_id" , "mu", "sigma" ,"Rho" , "log_lik")
 
 datalist_i <- list(
-  N = nrow(d),                                  #length of dataset
-  J = length( unique(d$ID_actor_index) ),       #number of individuals
-  K = max(d$technique_index),                   #number of processing techniques
-  tech = d$technique_index,                     #technique index
-  y = cbind( d$y1 , d$y2 , d$y3 ),              #individual payoff at timestep (1 if succeed, 0 is fail)
-  bout = d$forg_bout,                          #processing bout unique to individual J
-  id = d$ID_actor_index ,                      #individual ID
-  N_effects=2                                  #number of parameters to estimates
+N = nrow(d),                                  #length of dataset
+J = length( unique(d$ID_actor_index) ),       #number of individuals
+K = max(d$technique_index),                   #number of processing techniques
+tech = d$technique_index,                     #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),              #individual payoff at timestep (1 if succeed, 0 is fail)
+bout = d$forg_bout,                          #processing bout unique to individual J
+id = d$ID_actor_index ,                      #individual ID
+N_effects=2                                  #number of parameters to estimates
 )
 
 ##frequency dependent learning
 datalist_s <- list(
-  N = nrow(d),                            #length of dataset
-  J = length( unique(d$ID_actor_index) ),  #number of individuals
-  K = max(d$technique_index),         #number of processing techniques
-  tech = d$technique_index,           #technique index
-  y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
-  s = cbind(d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
-  q = cbind(d$pay1 , d$pay2 , d$pay3 ),
-  bout = d$forg_bout,#bout is forg index  unique to individual J
-  id = d$ID_actor_index ,                                           #individual ID
-  N_effects=4                                                                        #number of parameters to estimates
+N = nrow(d),                            #length of dataset
+J = length( unique(d$ID_actor_index) ),  #number of individuals
+K = max(d$technique_index),         #number of processing techniques
+tech = d$technique_index,           #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
+s = cbind(d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
+q = cbind(d$pay1 , d$pay2 , d$pay3 ),
+bout = d$forg_bout,#bout is forg index  unique to individual J
+id = d$ID_actor_index ,                                           #individual ID
+N_effects=4                                                                        #number of parameters to estimates
 )
 datalist_s$q <- datalist_s$q / max(datalist_s$q)
 datalist_s$s <- datalist_s$s/ max(datalist_s$s)
@@ -124,20 +140,20 @@ datalist_s$s <- datalist_s$s/ max(datalist_s$s)
 
 ##global model
 datalist_g <- list(
-  N = nrow(d),                            #length of dataset
-  J = length( unique(d$ID_actor_index) ),  #number of individuals
-  K = max(d$technique_index),         #number of processing techniques
-  tech = d$technique_index,           #technique index
-  y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
-  s = cbind( d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
-  f = cbind( d$fem1 , d$fem2 , d$fem3 ),
-  k = cbind( d$kin1 , d$kin2 , d$kin3 ),
-  p = cbind( d$pay1 , d$pay2 , d$pay3 ),
-  r = cbind( d$rank1 , d$rank2 , d$rank3 ),
-  x = cbind( d$sex1 , d$sex2 , d$sex3 ),
-  bout = d$forg_bout, #bout is forg index  unique to individual J
-  id = d$ID_actor_index ,                                           #individual ID
-  N_effects=9                                                                        #number of parameters to estimates
+N = nrow(d),                            #length of dataset
+J = length( unique(d$ID_actor_index) ),  #number of individuals
+K = max(d$technique_index),         #number of processing techniques
+tech = d$technique_index,           #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
+s = cbind( d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
+f = cbind( d$fem1 , d$fem2 , d$fem3 ),
+k = cbind( d$kin1 , d$kin2 , d$kin3 ),
+p = cbind( d$pay1 , d$pay2 , d$pay3 ),
+r = cbind( d$rank1 , d$rank2 , d$rank3 ),
+x = cbind( d$sex1 , d$sex2 , d$sex3 ),
+bout = d$forg_bout, #bout is forg index  unique to individual J
+id = d$ID_actor_index ,                                           #individual ID
+N_effects=9                                                                        #number of parameters to estimates
 )
 
 datalist_g$s <- datalist_g$s/ max(datalist_g$s)
@@ -201,4 +217,129 @@ c <- rnorm(20000,mean=0,sd=1)
 dens(c)
 dens(exp(c))
 median(exp(c))
+
+
+
+
+#################################
+##########slope models###########
+#################################
+
+parlistS=c("a_id" , "mu", "delta_m" , "delta_a", "sigma" ,"Rho" , "log_lik")
+
+datalist_i <- list(
+N = nrow(d),                                  #length of dataset
+J = length( unique(d$ID_actor_index) ),       #number of individuals
+K = max(d$technique_index),                   #number of processing techniques
+tech = d$technique_index,                     #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),              #individual payoff at timestep (1 if succeed, 0 is fail)
+bout = d$forg_bout,                          #processing bout unique to individual J
+id = d$ID_actor_index ,                      #individual ID
+male=d$male,
+adult=d$adult,
+N_effects=2                               #number of parameters to estimates
+)
+
+##single strategy social learning
+datalist_s <- list(
+N = nrow(d),                            #length of dataset
+J = length( unique(d$ID_actor_index) ),  #number of individuals
+K = max(d$technique_index),         #number of processing techniques
+tech = d$technique_index,           #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
+s = cbind(d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
+q = cbind(d$pay1 , d$pay2 , d$pay3 ),
+bout = d$forg_bout,#bout is forg index  unique to individual J
+id = d$ID_actor_index ,                                           #individual ID
+male=d$male,
+adult=d$adult,
+N_effects=4                                                                        #number of parameters to estimates
+)
+
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+datalist_s$s <- datalist_s$s/ max(datalist_s$s)
+
+##global model
+datalist_g <- list(
+N = nrow(d),                            #length of dataset
+J = length( unique(d$ID_actor_index) ),  #number of individuals
+K = max(d$technique_index),         #number of processing techniques
+tech = d$technique_index,           #technique index
+y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
+s = cbind( d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
+f = cbind( d$fem1 , d$fem2 , d$fem3 ),
+k = cbind( d$kin1 , d$kin2 , d$kin3 ),
+p = cbind( d$pay1 , d$pay2 , d$pay3 ),
+r = cbind( d$rank1 , d$rank2 , d$rank3 ),
+x = cbind( d$sex1 , d$sex2 , d$sex3 ),
+bout = d$forg_bout, #bout is forg index  unique to individual J
+id = d$ID_actor_index ,                                           #individual ID
+male=d$male,
+adult=d$adult,
+N_effects=9                                                                        #number of parameters to estimates
+)
+
+datalist_g$s <- datalist_g$s/ max(datalist_g$s)
+datalist_g$f <- datalist_g$f / max(datalist_g$f)
+datalist_g$k <- datalist_g$k/ max(datalist_g$k)
+datalist_g$p <- datalist_g$p/ max(datalist_g$p)
+datalist_g$r <- datalist_g$r/ max(datalist_g$r)
+datalist_g$x <- datalist_g$x/ max(datalist_g$x)
+
+
+fit_i = stan( file = 'ewa_individual.stan', data = datalist_i ,iter = 4000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.95) , pars=parlistS, refresh=100)
+
+fit_pay = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.95 ) , pars=parlistS, refresh=100 , init=0)
+#same-sex bias
+datalist_s$q =cbind(d$sex1 , d$sex2 , d$sex3 )
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+fit_sex = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.99 ) , pars=parlistS, refresh=100 , init=0)
+#rank_bias
+datalist_s$q =cbind(d$rank1 , d$rank2 , d$rank3 )
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+fit_rank = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.99 ) , pars=parlistS, refresh=100 , init=0)
+#kin-bias
+datalist_s$q =cbind(d$kin1 , d$kin2 , d$kin3 )
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+fit_kin = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.99 ) , pars=parlistS, refresh=100, init=0)
+###female bias
+datalist_s$q = cbind(d$fem1 , d$fem2 , d$fem3 )
+datalist_s$q <- datalist_s$q / max(datalist_s$q)
+fit_fem = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 4000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.99 ) , pars=parlistS, refresh=100 , init=0)
+###Freq dep
+fit_s = stan( file = 'ewa_freq.stan', data = datalist_s ,iter = 6000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.999 ,  max_treedepth = 15) , pars=parlistS, refresh=100 , init=0)
+#global model
+fit_global = stan( file = 'ewa_global.stan', data = datalist_g ,iter = 6000, warmup=2000, chains=5, cores=5, control=list(adapt_delta=0.999 ,  max_treedepth = 15) , pars=parlistS, refresh=100 , init=0)
+
+save(d,fit_i,fit_s,fit_fem,fit_pay,fit_kin,fit_rank,fit_sex,fit_global,file="5min_slopes_VervetPNUTnoglobal.rdata")
+
+
+precis(fit_fem , pars=c('mu' , 'sigma', 'delta_s' , 'delta_a', 'a_id') , depth=3)
+
+
+compare(fit_i, fit_s, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
+
+tracerplot(fit_s , pars='mu')
+
+
+precis(fit_sex , depth=3)
+post <- extract(fit_i)
+
+mean(exp(post3$mu[1]))#group
+mean(exp(post3$mu[,1] + post3$delta_a[,1,1]))#juvenile
+mean(exp(post3$mu[,1] + post3$delta_a[,1,2]))#adult
+
+mean(exp(post2$mu[,1]))#juv
+mean(exp(post2$mu[,1] + post2$delta_a[,1]))#adult
+
+mean(exp(post1$mu[1]))#group
+mean(exp(post1$mu[,1] + post1$delta_a[,1,1]))#juvenie
+mean(exp(post1$mu[,1] + post1$delta_a[,1,2]))#adult
+
+mean(exp(post0$mu[1]))#group
+
+mean(logistic(post2$mu[,2]))
+mean(logistic(post2$mu[,2] + post2$delta_a[,2]))
+
+mean(exp(post$mu[,1]))
 
