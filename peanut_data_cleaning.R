@@ -6,7 +6,7 @@
 #### Interested in sex and age variation
 #### load packages + data
 rm(list = ls())
-library(lubridate)
+require(lubridate)
 library(RColorBrewer)
 library(beepr)
 library(gtools)
@@ -199,4 +199,12 @@ d$rank3[is.nan(d$rank3)] <- 0
 d$rank2[is.nan(d$rank2)] <- 0
 d$rank1[is.nan(d$rank1)] <- 0
 
+#create yield columns
+d$y1 <- ifelse(d$succeed==1 & d$technique_index==1 , 1, 0)
+d$y2 <- ifelse(d$succeed==1 & d$technique_index==2 , 1, 0)
+d$y3 <- ifelse(d$succeed==1 & d$technique_index==3 , 1, 0)
+
+d <-d[with(d, order(ID_actor_index, forg_bout)),]
+
 write.csv(d,"Peanut_Vervet_30min.csv")
+
