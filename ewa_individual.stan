@@ -1,88 +1,82 @@
 data {
-int K;              // num options
-int N;              // num observations
+int K;              // num behaviors
+int N;              // num observations in dataset
 int J;              // num individuals
-int tech[N];        // tech chosen
-real y[N,K];        // observed personal yields of techs
-int bout[N];      // bout
-int id[N];          // player id
+int tech[N];        // techique chosen
+real y[N,K];        // observed personal yields of techs (1/0)
+int bout[N];        // processing bout per individual
+int id[N];          // individual id
 int N_effects;      // number of learning parameters to estimate
-int male[N];
-int adult[N];
-
+int sex_index[N];   //index variable for sex; 1 is female 2 is male
+int age_index[N];   //index variable for age; 1 is female 2 is male
 }
 parameters {
-vector[N_effects] mu;                   // average effects
-vector[N_effects] delta_a;               // age index variable
-vector[N_effects] delta_m;               // sex index variable
-vector<lower=0>[N_effects] sigma;       // standard deviations
-matrix[N_effects,J] zed;                // individual z-scores
+matrix[2,N_effects] A;                  //age means
+matrix[2,N_effects] S;                  //sex  means
+vector<lower=0>[N_effects] sigma;       // standard deviations of varying effects
+matrix[N_effects,J] zed;                // individual z-scores for cholesky decomp
 cholesky_factor_corr[N_effects] L_Rho;  // correlation matrix
 }
 
 transformed parameters{
-    matrix[J,N_effects] a_id;
-    a_id = (diag_pre_multiply(sigma,L_Rho) * zed)';
+    matrix[J,N_effects] I;              //define varying effects for individuals
+    I = (diag_pre_multiply(sigma,L_Rho) * zed)'; //cholesky decomp majick
 }
 
 model {
-	vector[K] AC;       // attraction scores
-	real logPrA;        // individual learning temp
-	real phi;			// stickiness parameter
-	real lambda;			
+  vector[K] AC;       // attraction scores
+  real logPrA;        // individual learning logPr
+  real phi;           // stickiness parameter to recent experience
+  real lambda;        // sensitivity to attraction scores
 
 //priors
-    mu[1] ~ normal(0,0.6);
-    mu[2] ~ normal(0,1);
-    delta_a ~ normal(0,0.5);
-    delta_m ~ normal(0,0.5);
+to_vector(A[1,]) ~ normal(0,0.6);
+to_vector(S[1,]) ~ normal(0,0.6);
+to_vector(A[2,]) ~ normal(0,1);
+to_vector(S[2,]) ~ normal(0,1);
+sigma ~ exponential(1);
+to_vector(zed) ~ normal(0,1);
+L_Rho ~ lkj_corr_cholesky(4);
 
-    sigma ~ exponential(1);
-    to_vector(zed) ~ normal(0,1);
-    L_Rho ~ lkj_corr_cholesky(3);
+  for ( i in 1:N ) {
+  //update attractions
+    for ( j in 1:K ) {
+      if ( bout[i] > 1 ) {
+        AC[j]= (1-phi)*AC[j] + phi*y[i-1,j];
+      } else {
+        AC[j]= 0;
+      }
+    }//j
+            lambda = exp( I[id[i],1] + A[1,age_index[i]] + S[1,sex_index[i]] ) ;
+            phi= inv_logit(  I[id[i],2] +  A[2,age_index[i]] + S[2,sex_index[i]]);
+            logPrA = lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
+            target += ( logPrA );
 
-	for ( i in 1:N ) {
-	//update attractions
-		for ( j in 1:K ) {
-			if ( bout[i] > 1 ) {
-				AC[j]= (1-phi)*AC[j] + phi*y[i-1,j];
-			} else {
-				AC[j]= 0;
-			}
-		}//j
-            lambda = exp( mu[1] +  a_id[id[i],1] + delta_a[1]*adult[i] + delta_m[1]*male[i] ) ;
-            phi= inv_logit( mu[2] + a_id[id[i],2] + delta_a[2]*adult[i] + delta_m[2]*male[i] );
-		        logPrA= lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
-	        	target += ( logPrA );
-
-		}//i
+    }//i
 }
 
 generated quantities {
     vector[N] log_lik;
     vector[K] AC;       // attraction scores
     real logPrA;        // individual learning temp
-    real PrS;        // social learning temp
     vector[K] lin_mod;
     real lambda;           // stickiness parameter
     real phi;           // stickiness parameter
     matrix[N_effects,N_effects] Rho;
-	  Rho = L_Rho * L_Rho';
+    Rho = L_Rho * L_Rho';
 
 for ( i in 1:N ) {
-	//update attractions
-		for ( j in 1:K ) {
-			if ( bout[i] > 1 ) {
-				AC[j]= (1-phi)*AC[j] + phi*y[i-1,j];
-			} else {
-				AC[j]= 0;
-			}
-		}//j
-            lambda = exp( mu[1] +  a_id[id[i],1] + delta_a[1]*adult[i] + delta_m[1]*male[i] ) ;
-            phi= inv_logit( mu[2] + a_id[id[i],2] + delta_a[2]*adult[i] + delta_m[2]*male[i] );
-		        logPrA= lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
-	        	log_lik[i] = ( logPrA );
-
-		}//i
+  //update attractions
+    for ( j in 1:K ) {
+      if ( bout[i] > 1 ) {
+        AC[j]= (1-phi)*AC[j] + phi*y[i-1,j];
+      } else {
+        AC[j]= 0;
+      }
+    }//j
+            lambda = exp( I[id[i],1] + A[1,age_index[i]] + S[1,sex_index[i]] ) ;
+            phi= inv_logit(  I[id[i],2] +  A[2,age_index[i]] + S[2,sex_index[i]]);
+            logPrA = lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
+            log_lik[i] = logPrA ;
+    }//i
 }
-		
