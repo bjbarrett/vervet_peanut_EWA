@@ -1,7 +1,7 @@
 library(rethinking)
 library(RColorBrewer)
 #load("/Users/BJB/Downloads/20min_slopes_VervetPNUTindex.rdata")
-
+load("~/Downloads/vervet_peanut_ewa_20min_25April2020.rdata")
 ###############################
 ########raw data plots#########
 ################################
@@ -204,9 +204,9 @@ lambda_plots <- function(x,extract=TRUE){
     post <- extract(x)
   }
     #sex diff
-  post_plot1 <- exp(post$S[,1,1] + apply(post$A[,1,] , 1 ,mean) )
-  post_plot2 <- exp(post$S[,1,2] + apply(post$A[,1,] , 1 ,mean) )
-  dens(post_plot1 , main=expression(paste(lambda)) , xlim=c(0,20) , ylim=c(0,densmax_y(post_plot1, post_plot2) ) , xlab="sensitivity to attraction scores" , col="white")##phi
+  post_plot1 <- exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  post_plot2 <- exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  dens(post_plot1 , main=expression(paste(lambda)) , xlim=c(0,25) , ylim=c(0,densmax_y(post_plot1, post_plot2) ) , xlab="sensitivity to attraction scores" , col="white")##phi
   abline(v=median(post_plot1) ,col = col.alpha(col.pal[1], 0.5) ) 
   shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[1], 0.5))
   shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2, prob=0.9999)) , col = col.alpha(col.pal[2], 0.25))
@@ -214,14 +214,24 @@ lambda_plots <- function(x,extract=TRUE){
   legend("topright", legend = c("female", "male"), col = col.pal[1:2] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
   
   #age diff
-  post_plot3 <- exp(post$A[,1,1] + apply(post$S[,1,] , 1 ,mean) )
-  post_plot4 <- exp(post$A[,1,2] + apply(post$S[,1,] , 1 ,mean))
-  dens(post_plot3 , main=expression(paste(lambda)) , xlim=c(0,20) , ylim=c(0,densmax_y(post_plot3, post_plot4)) , xlab="sensitivity to attraction scores" , col="white")##phi
+  post_plot3 <- exp(post$A[,1,1] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  post_plot4 <- exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  dens(post_plot3 , main=expression(paste(lambda)) , xlim=c(0,25) , ylim=c(0,densmax_y(post_plot3, post_plot4)) , xlab="sensitivity to attraction scores" , col="white")##phi
   abline(v=median(post_plot3) ,col = col.alpha(col.pal[1], 0.5) ) 
   shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[1], 0.25))
   shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4, prob=0.9999)) , col = col.alpha(col.pal[2], 0.25))
   abline(v=median(post_plot4) , col = col.alpha(col.pal[2], 0.5) ) 
   legend("topright", legend = c("juvenile", "adult"), col = col.pal[1:2] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #group_diff
+  post_plot5 <- exp( post$G[,1,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
+  post_plot6 <- exp( post$G[,2,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
+  dens(post_plot5 , main=expression(paste(lambda)) , xlim=c(0,20) , ylim=c(0,densmax_y(post_plot5, post_plot6)) , xlab="sensitivity to attraction scores" , col="white")##phi
+  abline(v=median(post_plot5) ,col = col.alpha(col.pal[1], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[1], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[2], 0.25))
+  abline(v=median(post_plot6) , col = col.alpha(col.pal[2], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[1:2] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
 }
 
 phi_plots <- function(x,extract=TRUE){ 
@@ -231,8 +241,8 @@ phi_plots <- function(x,extract=TRUE){
     post <- extract(x)
   }
   #sex diff
-  post_plot1 <- logistic(post$S[,2,1] + apply(post$A[,2,] , 1 ,mean) )
-  post_plot2 <- logistic(post$S[,2,2] + apply(post$A[,2,] , 1 ,mean))
+  post_plot1 <- logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+  post_plot2 <- logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
   dens(post_plot1, main=expression(paste(phi)) , xlim=c(0,0.5) ,  ylim=c(0,densmax_y(post_plot1, post_plot2)) , xlab="weight given to recent experience" , col="white")##phi
   abline(v=median(post_plot1) ,col = col.alpha(col.pal[3], 0.5) ) 
   shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[3], 0.25))
@@ -241,14 +251,26 @@ phi_plots <- function(x,extract=TRUE){
   legend("topright", legend = c("female", "male"), col = col.pal[3:4] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
   
   #age diff
-  post_plot3 <- logistic(post$A[,2,1] + apply(post$S[,2,] , 1 ,mean) )
-  post_plot4 <- logistic(post$A[,2,2] + apply(post$S[,2,] , 1 ,mean) )
+  post_plot3 <- logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+  post_plot4 <- logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
   dens(post_plot3, main=expression(paste(phi)) , xlim=c(0,0.5) , ylim=c(0,densmax_y(post_plot3, post_plot4)) , xlab="weight given to recent experience" , col="white")##phi
   abline(v=median(post_plot3) ,col = col.alpha(col.pal[3], 0.5) ) 
   shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[3], 0.25))
   shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4, prob=0.9999)) , col = col.alpha(col.pal[4], 0.25))
   abline(v=median(post_plot4) , col = col.alpha(col.pal[4], 0.5) ) 
   legend("topright", legend = c("juvenile", "adult"), col = col.pal[3:4] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  
+  #group_diff
+  post_plot5 <- logistic( post$G[,1,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean)  + apply( post$I[,,2], 1 ,mean ))
+  post_plot6 <- logistic( post$G[,2,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean)  + apply( post$I[,,2], 1 ,mean ))
+  dens(post_plot5, main=expression(paste(phi)) , xlim=c(0,0.5) , ylim=c(0,densmax_y(post_plot5, post_plot6)) , xlab="weight given to recent experience" , col="white")##phi
+  abline(v=mean(post_plot5) ,col = col.alpha(col.pal[3], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[3], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[4], 0.25))
+  abline(v=mean(post_plot6) , col = col.alpha(col.pal[3], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[3:4] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
 }
 
 gamma_plots <- function(x,extract=TRUE){ 
@@ -258,8 +280,8 @@ gamma_plots <- function(x,extract=TRUE){
     post <- extract(x)
   }
   #sex diff
-  post_plot1 <- logistic(post$S[,3,1] + apply(post$A[,3,] , 1 ,mean)  )
-  post_plot2 <- logistic(post$S[,3,2] + apply(post$A[,3,] , 1 ,mean) )
+  post_plot1 <- logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+  post_plot2 <- logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
   
   dens(post_plot1 , main=expression(paste(gamma)) , xlim=c(0,1) , xlab="weight given to social information" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
   abline(v=median(post_plot1) ,col = col.alpha(col.pal[5], 0.5) ) 
@@ -268,14 +290,25 @@ gamma_plots <- function(x,extract=TRUE){
   abline(v=median(post_plot2) , col = col.alpha(col.pal[6], 0.5) ) 
   legend("topright", legend = c("female", "male"), col = col.pal[5:6] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
   #age diff
-  post_plot3 <- logistic(post$A[,3,1] + apply(post$S[,3,] , 1 ,mean) )
-  post_plot4 <- logistic(post$A[,3,2] + apply(post$S[,3,] , 1 ,mean) )
+  post_plot3 <- logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+  post_plot4 <- logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
   dens(post_plot3 , main=expression(paste(gamma)) , xlim=c(0,1) , xlab="weight given to social information" ,  ylim=c(0,densmax_y(post_plot3, post_plot4)) , col="white")##phi
   abline(v=median(post_plot3) ,col = col.alpha(col.pal[5], 0.5) ) 
   shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[5], 0.25))
   shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4 , prob=0.9999)) , col = col.alpha(col.pal[6], 0.25))
   abline(v=median(post_plot4) , col = col.alpha(col.pal[6], 0.5) ) 
   legend("topright", legend = c("juvenile", "adult"), col = col.pal[5:6] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #group_diff
+  post_plot5 <- logistic( post$G[,1,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean)  + apply( post$I[,,3], 1 ,mean ))
+  post_plot6 <- logistic( post$G[,2,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean)  + apply( post$I[,,3], 1 ,mean ))
+  dens(post_plot5, main=expression(paste(gamma)) , xlim=c(0,0.5) , ylim=c(0,densmax_y(post_plot5, post_plot6)) , xlab="weight given to social information" , col="white")
+  abline(v=mean(post_plot5) ,col = col.alpha(col.pal[5], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[5], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[6], 0.25))
+  abline(v=mean(post_plot6) , col = col.alpha(col.pal[6], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[5:6] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
 }
 
 fc_plots <- function(x,extract=TRUE){ 
@@ -285,8 +318,8 @@ fc_plots <- function(x,extract=TRUE){
     post <- extract(x)
   }
   #sex diff
-  post_plot1 <- exp(post$S[,4,1] + apply(post$A[,4,] , 1 ,mean) )
-  post_plot2 <- exp(post$S[,4,2] + apply(post$A[,4,] , 1 ,mean))
+  post_plot1 <- exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+  post_plot2 <- exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
   dens(post_plot1 , main=expression(paste(f_c)) , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
   abline(v=median(post_plot1) ,col = col.alpha(col.pal[7], 0.5) ) 
   shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
@@ -295,16 +328,24 @@ fc_plots <- function(x,extract=TRUE){
   legend("topright", legend = c("female", "male"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
   
   #age diff
-  post_plot3 <- exp(post$A[,4,1] + apply(post$S[,4,] , 1 ,mean) )
-  post_plot4 <- exp(post$A[,4,2] + apply(post$S[,4,] , 1 ,mean) )
+  post_plot3 <- exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+  post_plot4 <- exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
   dens(post_plot3 , main=expression(paste(f_c)) , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot3, post_plot4)) , col="white")##phi
   abline(v=median(post_plot3) ,col = col.alpha(col.pal[7], 0.5) ) 
   shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
   shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
   abline(v=median(post_plot4) , col = col.alpha(col.pal[8], 0.5) ) 
   legend("topright", legend = c("juvenile", "adult"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  #group_diff
+  post_plot5 <- exp( post$G[,1,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
+  post_plot6 <- exp( post$G[,2,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
+  dens(post_plot5 , main=expression(paste(f_c)) , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot3, post_plot4)) , col="white")##phi
+  abline(v=median(post_plot5) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot6) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[7:8] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
 }
-
 
 kappa_plots <- function(x,extract=TRUE){
   if (!extract) {
@@ -313,8 +354,8 @@ kappa_plots <- function(x,extract=TRUE){
     post <- extract(x)
   }
   ##add a conditional thing on X
-  post_plot1 <- post$S[,4,1] + apply(post$A[,4,] , 1 ,mean) 
-  post_plot2 <- post$S[,4,2] + apply(post$A[,4,] , 1 ,mean)
+  post_plot1 <- post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
+  post_plot2 <-post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
   dens(post_plot1 , main="kappa" , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
   abline(v=median(post_plot1) ,col = col.alpha(col.pal[7], 0.5) ) 
   shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
@@ -323,14 +364,25 @@ kappa_plots <- function(x,extract=TRUE){
   legend("topright", legend = c("female", "male"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
   
   #age diff
-  post_plot_j <- post$A[,4,1] + apply(post$S[,4,] , 1 ,mean) 
-  post_plot_a <- post$A[,4,2] + apply(post$S[,4,] , 1 ,mean) 
+  post_plot_j <- post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
+  post_plot_a <-post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
   dens(post_plot_a , main="kappa" , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot_a, post_plot_j)), col="white")
   abline(v=median(post_plot_j) ,col = col.alpha(col.pal[7], 0.5) ) 
   shade( density(post_plot_j) , lim= as.vector(HPDI(post_plot_j, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
   shade( density(post_plot_a) , lim= as.vector(HPDI(post_plot_a, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
   abline(v=median(post_plot_a) , col = col.alpha(col.pal[8], 0.5) ) 
   legend("topright", legend = c("juvenile", "adult"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #group_diff
+  post_plot5 <- post$G[,1,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )
+  post_plot6 <- post$G[,2,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )
+  dens(post_plot5 , main="kappa" , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot5, post_plot6)) , col="white")##phi
+  abline(v=median(post_plot5) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot6) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[7:8] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
 }
 
 ######cues for global models
@@ -345,36 +397,48 @@ kappa_global_plots <- function(x,extract=TRUE){
   for (i in 1:5){
     kpar_names <- c( "k_fem" , "k_kin" , "k_pay" , "k_rank" , "k_sex")
     
-    post_plot1 <- post$S[,4 + i,1] + apply(post$A[, 4 + i,] , 1 ,mean) 
-    post_plot2 <- post$S[,4 + i,2] + apply(post$A[, 4 + i,] , 1 ,mean)
+    post_plot1 <- post$S[,4+i,1] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
+    post_plot2 <-post$S[,4+i,2] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
     dens(post_plot1 , main=kpar_names[i] , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
     abline(v=median(post_plot1) ,col = col.alpha(col.pal[2*i-1], 0.5) ) 
     shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
     shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2, prob=0.9999)) , col = col.alpha(col.pal[2*i], 0.25))
     abline(v=median(post_plot2) , col = col.alpha(col.pal[2*i], 0.5) ) 
-    legend("topright", legend = c("female", "male"), col = col.pal[2*i-1:2*i] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+    legend("topright", legend = c("female", "male"), col = c(col.pal[2*i-1], col.pal[2*i]) , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
     
     #age diff
-    post_plot_j <- post$A[,4+i,1] + apply(post$S[,4+i,] , 1 ,mean) 
-    post_plot_a <- post$A[,4+i,2] + apply(post$S[,4+i,] , 1 ,mean) 
+    post_plot_j <- post$S[,4+i,1] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
+    post_plot_a <-post$S[,4+i,2] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
     dens(post_plot_a , main=kpar_names[i] , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot_a, post_plot_j)), col="white")
     abline(v=median(post_plot_j) ,col = col.alpha(col.pal[2*i-1], 0.5) ) 
     shade( density(post_plot_j) , lim= as.vector(HPDI(post_plot_j, prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
     shade( density(post_plot_a) , lim= as.vector(HPDI(post_plot_a, prob=0.9999)) , col = col.alpha(col.pal[2*i], 0.25))
     abline(v=median(post_plot_a) , col = col.alpha(col.pal[2*i], 0.5) ) 
-    legend("topright", legend = c("juvenile", "adult"), col = col.pal[2*i-1:2*i] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+    legend("topright", legend = c("juvenile", "adult"), col = c(col.pal[2*i-1], col.pal[2*i]) , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+    
+    #group_diff
+    post_plot5 <- post$G[,1,4+i] + apply( post$A[,4+i,] + post$S[,4+i,] , 1 ,mean) + apply( post$I[,,4+i], 1 ,mean )
+    post_plot6 <- post$G[,2,4+i] + apply( post$A[,4+i,] + post$S[,4+i,] , 1 ,mean) + apply( post$I[,,4+i], 1 ,mean )
+    dens(post_plot5 , main=kpar_names[i] , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot5, post_plot6)) , col="white")##phi
+    abline(v=median(post_plot5) ,col = col.alpha(col.pal[2*i-1], 0.5) ) 
+    shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
+    shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[2*i], 0.25))
+    abline(v=median(post_plot6) , col = col.alpha(col.pal[2*i], 0.5) ) 
+    legend("topright", legend = c("Kubu", "Noha"), col = c(col.pal[2*i-1], col.pal[2*i]) , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+    
+    
   }
 }
 
 ####sigma_plots
-dens(post$sigma[,1] , main="sigmas" , xlim=c(0,4) , col="white")##phi
-
-for (i in 1:ncol(post$sigma)){
-shade( density(post$sigma[,i]) , lim= as.vector(HPDI(post$sigma[,i], prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
-abline(v=mean(post$sigma[,i]) , col = col.pal[2*i-1] )
-}
-legend("topright", legend = c("lambda", "phi", "gamma", "placeholder"), col = rbind(col.pal[1],col.pal[3],col.pal[5], col.pal[7]), pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
-curve( dexp( x , rate=1) , lty=2 , add=TRUE , col="black" )
+# dens(post$sigma[,1] , main="sigmas" , xlim=c(0,4) , col="white")##phi
+# 
+# for (i in 1:ncol(post$sigma)){
+# shade( density(post$sigma[,i]) , lim= as.vector(HPDI(post$sigma[,i], prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
+# abline(v=mean(post$sigma[,i]) , col = col.pal[2*i-1] )
+# }
+# legend("topright", legend = c("lambda", "phi", "gamma", "placeholder"), col = rbind(col.pal[1],col.pal[3],col.pal[5], col.pal[7]), pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+# curve( dexp( x , rate=1) , lty=2 , add=TRUE , col="black" )
 
 #IL
 post <- extract(fit_i)
@@ -424,5 +488,24 @@ phi_plots(fit_sex,extract=FALSE)
 gamma_plots(fit_sex,extract=FALSE)
 kappa_plots(fit_sex,extract=FALSE)
 
-gamma_plots(fit_global,extract=TRUE)
-kappa_global_plots(fit_global, extract=TRUE)
+lambda_plots(fit_global,extract=FALSE)
+phi_plots(fit_global,extract=FALSE)
+gamma_plots(fit_global,extract=FALSE)
+kappa_global_plots(fit_global, extract=FALSE)
+
+######################################
+#########model predictions#############
+######################################
+preds<-post$PrPreds
+d$x1 <- apply( post$PrPreds[,,1] , 2 ,mean)
+d$x2 <- apply( post$PrPreds[,,2] , 2 ,mean)
+d$x3 <- apply( post$PrPreds[,,3] , 2 ,mean)
+
+plot(1:length(x1) , x1 , col="red" , xlim=c(0,1000) , ylim=c(0,1))
+points(1:length(x2) , x2 , col="blue")
+points(1:length(x3) , x3, col="green")
+col.pal=brewer.pal(3,"Accent")
+plot(d$date_index, d$x1 , col=col.alpha(col.pal[1], 0.01) , pch=19)
+plot(d$date_index, d$x2 , col=col.alpha(col.pal[2], 0.01) , pch=19)
+plot(d$date_index, d$x3 , col=col.alpha(col.pal[3], 0.01) , pch=19)
+dgg <- aggregate(cbind(d$x1 , d$x2 , d$x3 ) , list(Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index) , mean ) #gets neat summary table for plot

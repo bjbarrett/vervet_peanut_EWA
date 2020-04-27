@@ -129,42 +129,44 @@ post <- extract(fit_global)
 
 
 pp <- list(
-  # lambda_female = exp(post$S[,1,1] + apply(post$A[,1,] , 1 ,mean) ), 
-  # lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] , 1 ,mean) ), 
-  # lambda_juv = exp(post$A[,1,1] + apply(post$S[,1,] , 1 ,mean) ), 
-  # lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] , 1 ,mean) ), 
-  phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] , 1 ,mean) ), 
-  phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] , 1 ,mean) ), 
-  phi_juv = logistic(post$A[,2,1] + apply(post$S[,2,] , 1 ,mean) ), 
-  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] , 1 ,mean) ),
-  gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] , 1 ,mean) ), 
-  gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] , 1 ,mean) ), 
-  gamma_juv = logistic(post$A[,3,1] + apply(post$S[,3,] , 1 ,mean) ), 
-  gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] , 1 ,mean) )
-  # fc_female = exp(post$S[,4,1] + apply(post$A[,4,] , 1 ,mean) ), 
-  # fc_male = exp(post$S[,4,2] + apply(post$A[,4,] , 1 ,mean) ), 
-  # fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] , 1 ,mean) ), 
-  # fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] , 1 ,mean) ),
-  # k_fem_female = post$S[,5,1] + apply(post$A[,5,] , 1 ,mean) , 
-  # k_fem_male = post$S[,5,2] + apply(post$A[,5,] , 1 ,mean) , 
-  # k_fem_juv = post$A[,5,1] + apply(post$S[,5,] , 1 ,mean) , 
-  # k_fem_adult = post$A[,5,2] + apply(post$S[,5,] , 1 ,mean) , 
-  # k_kin_female = post$S[,6,1] + apply(post$A[,6,] , 1 ,mean) , 
-  # k_kin_male = post$S[,6,2] + apply(post$A[,6,] , 1 ,mean) , 
-  # k_kin_juv = post$A[,6,1] + apply(post$S[,6,] , 1 ,mean) , 
-  # k_kin_adult = post$A[,6,2] + apply(post$S[,6,] , 1 ,mean) , 
-  # k_pay_female = post$S[,7,1] + apply(post$A[,7,] , 1 ,mean) , 
-  # k_pay_male = post$S[,7,2] + apply(post$A[,7,] , 1 ,mean) , 
-  # k_pay_juv = post$A[,7,1] + apply(post$S[,7,] , 1 ,mean) , 
-  # k_pay_adult = post$A[,7,2] + apply(post$S[,7,] , 1 ,mean),
-  # k_rank_female = post$S[,8,1] + apply(post$A[,8,] , 1 ,mean) , 
-  # k_rank_male = post$S[,8,2] + apply(post$A[,8,] , 1 ,mean) , 
-  # k_rank_juv = post$A[,8,1] + apply(post$S[,8,] , 1 ,mean) , 
-  # k_rank_adult = post$A[,8,2] + apply(post$S[,8,] , 1 ,mean),  
-  # k_sex_female = post$S[,9,1] + apply(post$A[,9,] , 1 ,mean) , 
-  # k_sex_male = post$S[,9,2] + apply(post$A[,9,] , 1 ,mean) , 
-  # k_sex_juv = post$A[,9,1] + apply(post$S[,9,] , 1 ,mean) , 
-  # k_sex_adult = post$A[,9,2] + apply(post$S[,9,] , 1 ,mean)  
+  # lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  # lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  # lambda_juv = exp(post$A[,1,1] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  # lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )), 
+  phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )), 
+  phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_juv = logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  fc_female = exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+  fc_male = exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+  fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+  fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+  fc_Kubu= exp( post$G[,1,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )),
+  fc_Noha= exp( post$G[,2,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )),
+  k_fem_female = post$S[,5,1] + apply(post$A[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
+  k_fem_male = post$S[,5,2] + apply(post$A[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
+  k_fem_juv = post$A[,5,1] + apply(post$S[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
+  k_fem_adult = post$A[,5,2] + apply(post$S[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
+  k_kin_female = post$S[,6,1] + apply(post$A[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
+  k_kin_male = post$S[,6,2] + apply(post$A[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
+  k_kin_juv = post$A[,6,1] + apply(post$S[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
+  k_kin_adult = post$A[,6,2] + apply(post$S[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
+  k_pay_female = post$S[,7,1] + apply(post$A[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
+  k_pay_male = post$S[,7,2] + apply(post$A[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
+  k_pay_juv = post$A[,7,1] + apply(post$S[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
+  k_pay_adult = post$A[,7,2] + apply(post$S[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
+  k_rank_female = post$S[,8,1] + apply(post$A[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) ,
+  k_rank_male = post$S[,8,2] + apply(post$A[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) ,
+  k_rank_juv = post$A[,8,1] + apply(post$S[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) ,
+  k_rank_adult = post$A[,8,2] + apply(post$S[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) , 
+  k_sex_female = post$S[,9,1] + apply(post$A[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) ,
+  k_sex_male = post$S[,9,2] + apply(post$A[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) ,
+  k_sex_juv = post$A[,9,1] + apply(post$S[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) ,
+  k_sex_adult = post$A[,9,2] + apply(post$S[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) 
 )
 plot(precis(pp , depth=2) )
 precis(pp)
@@ -172,26 +174,27 @@ precis(pp)
 
 ##########individual-predictions#############
 
-l4p <- unique(subset( d , select=c("sex_index" , "age_index" , "ID_actor_index")))
+l4p <- unique(subset( d , select=c("sex_index" , "age_index" , "ID_actor_index" , "group_index")))
 
 lambda_list <- phi_list <- gamma_list <- fc_list <- kappa_list <-  lambda_list_CI <- phi_list_CI <- gamma_list_CI <- fc_list_CI <- kappa_list_CI  <- rep(0,nrow(l4p))
 for (i in 1:nrow(l4p)){
-  lambda_list[i] = mean(exp( post$I[,l4p$ID_actor_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] )) 
-  phi_list[i] = mean(logistic( post$I[,l4p$ID_actor_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) )
-  gamma_list[i] = mean(logistic( post$I[,l4p$ID_actor_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) )
-  fc_list[i] = mean(exp( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] )) 
-  kappa_list[i] = mean( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] ) 
+  lambda_list[i] = median(exp( post$I[,l4p$ID_actor_index[i],1] + post$G[,l4p$group_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] )) 
+  phi_list[i] = median(logistic( post$I[,l4p$ID_actor_index[i],2] + post$G[,l4p$group_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) )
+  gamma_list[i] = median(logistic( post$I[,l4p$ID_actor_index[i],3] + post$G[,l4p$group_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) )
+  fc_list[i] = median(exp( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]]  + post$S[,4,l4p$sex_index[i]] )) 
+  kappa_list[i] = median( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] ) 
   
-  lambda_list_CI[i] = HPDI(exp( post$I[,l4p$ID_actor_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] ) )
-  phi_list_CI[i] = HPDI(logistic( post$I[,l4p$ID_actor_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) )
-  gamma_list_CI[i] = HPDI(logistic( post$I[,l4p$ID_actor_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) )
-  fc_list_CI[i] = HPDI(exp( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] )) 
-  kappa_list_CI[i] = mean( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] ) 
+  # lambda_list_CI[i] = HPDI(exp( post$I[,l4p$ID_actor_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] ) )
+  # phi_list_CI[i] = HPDI(logistic( post$I[,l4p$ID_actor_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) )
+  # gamma_list_CI[i] = HPDI(logistic( post$I[,l4p$ID_actor_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) )
+  # fc_list_CI[i] = HPDI(exp( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] )) 
+  # kappa_list_CI[i] = mean( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] ) 
   
 }
 phi_list
 lambda_list
 gamma_list
+fc_list
 
 
 #######CHECK PRIORS#####
