@@ -1,0 +1,114 @@
+---
+title: 'Vervet Social Learning Stuff'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#load("/Users/BJB/Dropbox/Vervets/vervet_peanut_EWA/vervet_peanut_ewa_20min_25April2020.rdata")
+library(rethinking)
+library(RColorBrewer)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Analytical Approach
+
+To analyze these models we used a series of expereience-weighted attraction models. These are hierarchical dynamical time-series models that evaluate the joint influence of personal and social information on an individual displaying behavior. These models closely link our statistical model to hypothesized data generating processes, blah blah blah...
+
+
+We fit a series of models evaluating the following learning strategies:
+
+1. Individual Learning
+2. Frequency-dependent learning
+  + positive-frequency dependence (i.e. bias towards copying most common behavior or conformity-bias)
+  + linear-copying (copy behavior proportional to its frequency-- also siilar to random or oblique copying)
+  + negative frequency dependence(i.e. bias towards copying rare behavior or anti-conformity-bias)
+3. Female-biased learning (bias towards copying females in group i.e. matrilineal sex in vervets)
+4. Kin-biased learning  (copy individuals closel related, cue is coefficient of relatedness)
+5. Payoff-biased learning  (copy succeful behavior, payoff is 1 if succeful,0 if not)
+6. Rank-biased learning (copy high-ranking individual- based off of the rank values given to me forgetting what they are called)
+7. Sex-biased learning (copy behaviors of individuals that are the same sex as you)
+8. A global model that includes 1-6 which we will interpret as it is most informative.
+
+We run the models using regularizing priors and a cholesky decomposition on the varying effects. They were fit using RStan version XXX on an RStudio Server. All data and code for this analysis can be found on my github.
+
+Model comparison using WAIC suggests that across all models, the global model is best supported. Of the models that evaluate a single social learning strategy we find the best support for payoff-biaed learning followed by rank-biased learning.
+
+EWA models have two parts: a set of expressions that specify how individuals accumulate experience and a second set of expressions that specify the probability of each option being chosen. Accumulated experience is represented by \emph{attraction} scores, $A_{ij,t}$, unique to each behaviour $i$, individual $j$, and time $t$. We update $A_{ij,t}$ with an observed pay-off $\pi_{ij,t}$:
+\begin{align}
+A_{{ij},t+1} &= (1-\phi_{j})A_{ij,t} + \phi_{j}\pi_{ij,t}
+\end{align}
+The parameter $\phi_j$ controls the importance of recent pay-offs in influencing attraction scores. When $\phi_j$ is high, more weight is given to recent experience over past expereinces-- memory has less of an influence on behavioral choice. This parameter is unique to an individual $j$, and we estimate how it varies by age and sex class in .
+
+ Attraction scores are converted into probabilities of behavioural choice,using a standard multinomial logistic, or \emph{soft-max}, choice rule:
+\begin{align}
+\Pr(i|A_{ijt},\lambda_j) &= \frac{\exp(\lambda_j A_{ij,t})}{\sum\limits_{k} \exp($\lambda_j A_{kj,t})} = I_{ij}
+\end{align}
+The parameter $\lambda_j$ controls sensitivity to differences in attraction scores on behavioral choice and is unique to an individual $j$. A very large $\lambda_j$ ,means the choice with the largest attraction score is nearly always selected. When $\lambda=0$, choice is random with respect to attraction score. Individuals were assigned a pay-off of zero, $\pi_{ij,t}=0$, if they failed to open a peanut. If they were successful, a pay-off of 1 was assigned.
+
+Social learning may influence choice directly and distinctly from individual learning. Let $S_{ij} = S(i|\mathbf \Theta_j)$ be the probability an individual $j$ chooses behaviour $i$ on the basis of a set of social cues and parameters $\mathbf \Theta_j$. Realized choice is given by:
+\begin{align}
+\Pr(i|A_{ij,t},\mathbf \Theta_j) = (1-\gamma_j)I_{ij,t} + \gamma_j S_{ij,t}
+\end{align}
+where $\gamma_j$ is the weight, between 0 and 1, assigned to social cues.
+
+Social cues are incorporated into $S_{ij,t}$ by use of a multinomial probability expression with a log-linear component $B_{ij,t}$ that is an additive combination of cue frequencies. The probability of each behavioral option $i$, as a function only of social cues, is:
+\begin{align}
+S_{ij,t} &= \frac{N_{ij,t}^f \exp{B_{ij,t}} }{\sum_m N_{mj,t}^f \exp{B_{mj,t}} } \label{expr:Sijt}
+\end{align}
+The $N_{ij,t}$ variables are the observed frequencies of each technique $i$ at time $t$ by individual $j$. The exponentiated parameter $f^c$ controls the amount and type of frequency dependence. When $f=1$, social learning is unbiased by frequency and techniques influence choice in proportion to their occurrence. When $f>1$, social learning is conformist. Other social cues, like pay-off, are incorporated via the $B_{ij,t}$ term:
+\begin{align}
+B_{ijt} &= \sum_k \beta_k \kappa_{k,ijt}
+\end{align}
+This is the sum of the products of the influence parameters $\beta_k$ and the cue values $\kappa_{k,ijt}$. We consider five cues: 
+\begin{enumerate}
+\item Pay-off. $\kappa=\log(t_\text{open})^{-1}$ or, for failure, $\kappa=0$.
+\item Demonstrator rank. $\kappa=1$ for alpha rank, 0 otherwise.
+\item Matrilineal kinship. $\kappa=1$ for matrilineal kin, 0 otherwise.
+\item Age similarity. $\kappa$ is defined as the inverse absolute age difference: $(1+ |\text{age}_\text{demonstrator} - \text{age}_\text{observer}|)^{-1}$.
+\item Age bias. $\kappa= \text{age}_\text{demonstrator}$.
+\end{enumerate}
+
+The final components needed are a way to make the individual-level parameters depend upon individual state and a way to define the window of attention for social cues at each time $t$. The parameters $\gamma_j$ and $\phi_j$ control an individual $j$'s use of social cues and rate of attraction updating, respectively. We model these parameters as logistic transforms of a linear combination of predictors. For example, the rate of updating $\phi_j$ for an individual $j$ is defined as: 
+\begin{align}
+\mathrm{logit}(\phi_j) &= \alpha_j + \mu_\phi \times \text{age}_{j}
+\end{align}
+
+#Results
+For a social information window of 20 minutes, we found that the global model best predcited our observed data, compared to a mode that evaluated any one particular social learning strategy. Of the individual social learning stratgies WAIC values best supported the payoff-biased learning model, foloowed by rank-bias, and frequency-dependent learning.
+
+I need to add payoff model in this workspace, it is running now.
+
+```{r WAIC table}
+# WAICtab <- compare(fit_i, fit_freq, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
+# WAICtab
+WAIC(fit_global)
+```
+
+
+## Raw Data Plots
+```{r group level plots, echo=FALSE}
+post <- extract(fit_freq)
+str(post)
+dens(exp(post$A[,1,1]  ))
+```
+
