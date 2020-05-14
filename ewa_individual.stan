@@ -3,7 +3,7 @@ int K;              // num behaviors
 int N;              // num observations in dataset
 int J;              // num individuals
 int tech[N];        // techique chosen
-real y[N,K];        // observed personal yields of techs (1/0)
+real pay_i[N,K];        // observed personal yields of techs (1/0)
 int bout[N];        // processing bout per individual
 int id[N];          // individual id
 int N_effects;      // number of learning parameters to estimate
@@ -53,7 +53,7 @@ L_Rho_g ~ lkj_corr_cholesky(3);
   //update attractions
     for ( j in 1:K ) {
       if ( bout[i] > 1 ) {
-        AC[j]= (1-phi)*AC[j] + phi*y[i-1,j];
+        AC[j]= (1-phi)*AC[j] + phi*pay_i[i-1,j];
       } else {
         AC[j]= 0;
       }
@@ -69,22 +69,23 @@ L_Rho_g ~ lkj_corr_cholesky(3);
 generated quantities {
     vector[N] log_lik;
     vector[K] AC;       // attraction scores
-    matrix[N,K] PrPreds;     
     real logPrA;        // individual learning temp
     vector[K] lin_mod;
     real lambda;           // stickiness parameter
     real phi;           // stickiness parameter
     matrix[N_effects,N_effects] Rho_i;
     matrix[N_effects,N_effects] Rho_g;
+    matrix[N,K] PrPreds;     
 
-    Rho_i = L_Rho_i * L_Rho_i';
-    Rho_g = L_Rho_g * L_Rho_g';
+
+    Rho_i = multiply_lower_tri_self_transpose(L_Rho_i);
+    Rho_g = multiply_lower_tri_self_transpose(L_Rho_g);
 
 for ( i in 1:N ) {
   //update attractions
     for ( j in 1:K ) {
       if ( bout[i] > 1 ) {
-        AC[j]= (1-phi)*AC[j] + phi*y[i-1,j];
+        AC[j]= (1-phi)*AC[j] + phi*pay_i[i-1,j];
       } else {
         AC[j]= 0;
       }
@@ -93,10 +94,9 @@ for ( i in 1:N ) {
             phi= inv_logit(  I[id[i],2] + G[group_index[i],2] +  A[2,age_index[i]] + S[2,sex_index[i]]);
             logPrA = lambda*AC[tech[i]] - log_sum_exp( lambda*AC );
             log_lik[i] = logPrA ;
-            
+
             for(j in 1:K){
             PrPreds[i,j] = exp( lambda*AC[j] - log_sum_exp( lambda*AC) );
             }
-
                 }//i
 }

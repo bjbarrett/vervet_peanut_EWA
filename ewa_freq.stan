@@ -3,7 +3,7 @@ data {
     int N;              // num observations in dataset
     int J;              // num individuals
     int tech[N];        // techique chosen
-    real y[N,K];        // observed personal yields of techs (1/0)
+    real pay_i[N,K];        // observed personal yields of techs (1/0)
     real s[N,K];        // observed number of ttimes observing behaviors
     int bout[N];        // processing bout per individual
     int id[N];          // individual id
@@ -49,8 +49,8 @@ model {
     to_vector(S[2,]) ~ normal(0,1);
     to_vector(A[3,]) ~ normal(0,1);
     to_vector(S[3,]) ~ normal(0,1);
-    to_vector(A[4,]) ~ normal(0,0.8);
-    to_vector(S[4,]) ~ normal(0,0.8);
+    to_vector(A[4,]) ~ normal(0,0.5);
+    to_vector(S[4,]) ~ normal(0,0.5);
     sigma_i ~ exponential(1);
     to_vector(zed_i) ~ normal(0,1);
     L_Rho_i ~ lkj_corr_cholesky(3);
@@ -63,7 +63,7 @@ model {
         //update attractions
         for ( j in 1:K ) {
             if ( bout[i] > 1 ) {
-                AC[j] = (1-phi)*AC[j] + phi*y[i-1,j];
+                AC[j] = (1-phi)*AC[j] + phi*pay_i[i-1,j];
             } else {
                 AC[j] = 0;
             }
@@ -117,7 +117,7 @@ generated quantities{
         //update attractions
         for ( j in 1:K ) {
             if ( bout[i] > 1 ) {
-                AC[j] = (1-phi)*AC[j] + phi*y[i-1,j];
+                AC[j] = (1-phi)*AC[j] + phi*pay_i[i-1,j];
             } else {
                 AC[j] = 0;
             }
@@ -141,7 +141,7 @@ generated quantities{
                 PrS = s_temp[tech[i]]/sum(s_temp);
                 log_lik[i] =  log( (1-gamma)*exp(logPrA) + gamma*PrS )  ; 
                 for(j in 1:K){
-                PrPreds[i,j] = (1-gamma)*exp(logPrA) + gamma*PrS ;
+                PrPreds[i,j] = (1-gamma)*exp( lambda*AC[j] - log_sum_exp( lambda*AC) ) + gamma*(s_temp[j]/sum(s_temp)) ;
                 }
             } else {
                  log_lik[i] = (logPrA);

@@ -1,38 +1,282 @@
 ---
-title: 'Vervet Social Learning Stuff'
+title: 'Vervet Social Learning Peanut Experiment Summary'
 output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-#load("/Users/BJB/Dropbox/Vervets/vervet_peanut_EWA/vervet_peanut_ewa_20min_25April2020.rdata")
+knitr::opts_chunk$set(echo = FALSE)
 library(rethinking)
+library(rstan)
 library(RColorBrewer)
+
 ```
 
+```{R workspace load, eval=TRUE , echo=FALSE}
+#load("/Users/BJB/Dropbox/Vervets/vervet_peanut_EWA/vervet_peanut_ewa_20min_25April2020.rdata")
+load("/Users/BJB/Downloads/vervet_peanut_ewa_global_20min_24April2020.rdata")
+```
+
+ ```{R plotting fcns}
+ col.pal <- brewer.pal(12, "Paired")
+
+#function to default maximize window lims to posterior density max
+densmax_y <- function(e,f){
+  b <- max(density(e)$y)
+  a <- max(density(f)$y)
+  ymax <- ifelse(a>b, a , b)
+  ymax
+}
+
+#lambda#
+dev.off()
+
+lambda_plots <- function(x,extract=TRUE){ 
+  
+  if (!extract) {
+   post <- post
+  } else {
+    post <- extract(x)
+  }
+    #sex diff
+  post_plot1 <- exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  post_plot2 <- exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  dens(post_plot1 , main=expression(paste(lambda)) , xlim=c(0,25) , ylim=c(0,densmax_y(post_plot1, post_plot2) ) , xlab="sensitivity to attraction scores" , col="white")##phi
+  abline(v=median(post_plot1) ,col = col.alpha(col.pal[1], 0.5) ) 
+  shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[1], 0.5))
+  shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2, prob=0.9999)) , col = col.alpha(col.pal[2], 0.25))
+  abline(v=median(post_plot2) , col = col.alpha(col.pal[2], 0.5) ) 
+  legend("topright", legend = c("female", "male"), col = col.pal[1:2] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #age diff
+  post_plot3 <- exp(post$A[,1,1] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  post_plot4 <- exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+  dens(post_plot3 , main=expression(paste(lambda)) , xlim=c(0,25) , ylim=c(0,densmax_y(post_plot3, post_plot4)) , xlab="sensitivity to attraction scores" , col="white")##phi
+  abline(v=median(post_plot3) ,col = col.alpha(col.pal[1], 0.5) ) 
+  shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[1], 0.25))
+  shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4, prob=0.9999)) , col = col.alpha(col.pal[2], 0.25))
+  abline(v=median(post_plot4) , col = col.alpha(col.pal[2], 0.5) ) 
+  legend("topright", legend = c("juvenile", "adult"), col = col.pal[1:2] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #group_diff
+  post_plot5 <- exp( post$G[,1,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
+  post_plot6 <- exp( post$G[,2,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
+  dens(post_plot5 , main=expression(paste(lambda)) , xlim=c(0,20) , ylim=c(0,densmax_y(post_plot5, post_plot6)) , xlab="sensitivity to attraction scores" , col="white")##phi
+  abline(v=median(post_plot5) ,col = col.alpha(col.pal[1], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[1], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[2], 0.25))
+  abline(v=median(post_plot6) , col = col.alpha(col.pal[2], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[1:2] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+}
+
+phi_plots <- function(x,extract=TRUE){ 
+  if (!extract) {
+    post <- post
+  } else {
+    post <- extract(x)
+  }
+  #sex diff
+  post_plot1 <- logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+  post_plot2 <- logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+  dens(post_plot1, main=expression(paste(phi)) , xlim=c(0,0.5) ,  ylim=c(0,densmax_y(post_plot1, post_plot2)) , xlab="weight given to recent experience" , col="white")##phi
+  abline(v=median(post_plot1) ,col = col.alpha(col.pal[3], 0.5) ) 
+  shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[3], 0.25))
+  shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2, prob=0.9999)) , col = col.alpha(col.pal[4], 0.25))
+  abline(v=median(post_plot2) , col = col.alpha(col.pal[4], 0.5) ) 
+  legend("topright", legend = c("female", "male"), col = col.pal[3:4] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #age diff
+  post_plot3 <- logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+  post_plot4 <- logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+  dens(post_plot3, main=expression(paste(phi)) , xlim=c(0,0.5) , ylim=c(0,densmax_y(post_plot3, post_plot4)) , xlab="weight given to recent experience" , col="white")##phi
+  abline(v=median(post_plot3) ,col = col.alpha(col.pal[3], 0.5) ) 
+  shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[3], 0.25))
+  shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4, prob=0.9999)) , col = col.alpha(col.pal[4], 0.25))
+  abline(v=median(post_plot4) , col = col.alpha(col.pal[4], 0.5) ) 
+  legend("topright", legend = c("juvenile", "adult"), col = col.pal[3:4] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  
+  #group_diff
+  post_plot5 <- logistic( post$G[,1,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean)  + apply( post$I[,,2], 1 ,mean ))
+  post_plot6 <- logistic( post$G[,2,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean)  + apply( post$I[,,2], 1 ,mean ))
+  dens(post_plot5, main=expression(paste(phi)) , xlim=c(0,0.5) , ylim=c(0,densmax_y(post_plot5, post_plot6)) , xlab="weight given to recent experience" , col="white")##phi
+  abline(v=mean(post_plot5) ,col = col.alpha(col.pal[3], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[3], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[4], 0.25))
+  abline(v=mean(post_plot6) , col = col.alpha(col.pal[3], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[3:4] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+}
+
+gamma_plots <- function(x,extract=TRUE){ 
+  if (!extract) {
+    post <- post
+  } else {
+    post <- extract(x)
+  }
+  #sex diff
+  post_plot1 <- logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+  post_plot2 <- logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+  
+  dens(post_plot1 , main=expression(paste(gamma)) , xlim=c(0,1) , xlab="weight given to social information" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
+  abline(v=median(post_plot1) ,col = col.alpha(col.pal[5], 0.5) ) 
+  shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[5], 0.25))
+  shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2 , prob=0.9999)) , col = col.alpha(col.pal[6], 0.25))
+  abline(v=median(post_plot2) , col = col.alpha(col.pal[6], 0.5) ) 
+  legend("topright", legend = c("female", "male"), col = col.pal[5:6] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  #age diff
+  post_plot3 <- logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+  post_plot4 <- logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+  dens(post_plot3 , main=expression(paste(gamma)) , xlim=c(0,1) , xlab="weight given to social information" ,  ylim=c(0,densmax_y(post_plot3, post_plot4)) , col="white")##phi
+  abline(v=median(post_plot3) ,col = col.alpha(col.pal[5], 0.5) ) 
+  shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[5], 0.25))
+  shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4 , prob=0.9999)) , col = col.alpha(col.pal[6], 0.25))
+  abline(v=median(post_plot4) , col = col.alpha(col.pal[6], 0.5) ) 
+  legend("topright", legend = c("juvenile", "adult"), col = col.pal[5:6] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #group_diff
+  post_plot5 <- logistic( post$G[,1,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean)  + apply( post$I[,,3], 1 ,mean ))
+  post_plot6 <- logistic( post$G[,2,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean)  + apply( post$I[,,3], 1 ,mean ))
+  dens(post_plot5, main=expression(paste(gamma)) , xlim=c(0,0.5) , ylim=c(0,densmax_y(post_plot5, post_plot6)) , xlab="weight given to social information" , col="white")
+  abline(v=mean(post_plot5) ,col = col.alpha(col.pal[5], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[5], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[6], 0.25))
+  abline(v=mean(post_plot6) , col = col.alpha(col.pal[6], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[5:6] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+}
+
+fc_plots <- function(x,extract=TRUE){ 
+  if (!extract) {
+    post <- post
+  } else {
+    post <- extract(x)
+  }
+  #sex diff
+  post_plot1 <- exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+  post_plot2 <- exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+  dens(post_plot1 , main=expression(paste(f_c)) , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
+  abline(v=median(post_plot1) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot2) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("female", "male"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #age diff
+  post_plot3 <- exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+  post_plot4 <- exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+  dens(post_plot3 , main=expression(paste(f_c)) , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot3, post_plot4)) , col="white")##phi
+  abline(v=median(post_plot3) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot3) , lim= as.vector(HPDI(post_plot3, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot4) , lim= as.vector(HPDI(post_plot4, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot4) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("juvenile", "adult"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  #group_diff
+  post_plot5 <- exp( post$G[,1,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
+  post_plot6 <- exp( post$G[,2,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
+  dens(post_plot5 , main=expression(paste(f_c)) , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot3, post_plot4)) , col="white")##phi
+  abline(v=median(post_plot5) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot6) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[7:8] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+}
+
+kappa_plots <- function(x,extract=TRUE){
+  if (!extract) {
+    post <- post
+  } else {
+    post <- extract(x)
+  }
+  ##add a conditional thing on X
+  post_plot1 <- post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
+  post_plot2 <-post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
+  dens(post_plot1 , main="kappa" , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
+  abline(v=median(post_plot1) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot2) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("female", "male"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #age diff
+  post_plot_j <- post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
+  post_plot_a <-post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )
+  dens(post_plot_a , main="kappa" , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot_a, post_plot_j)), col="white")
+  abline(v=median(post_plot_j) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot_j) , lim= as.vector(HPDI(post_plot_j, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot_a) , lim= as.vector(HPDI(post_plot_a, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot_a) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("juvenile", "adult"), col = col.pal[7:8] , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+  #group_diff
+  post_plot5 <- post$G[,1,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )
+  post_plot6 <- post$G[,2,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )
+  dens(post_plot5 , main="kappa" , xlim=c(0,5) , xlab="strength of freq dependence" , ylim=c(0,densmax_y(post_plot5, post_plot6)) , col="white")##phi
+  abline(v=median(post_plot5) ,col = col.alpha(col.pal[7], 0.5) ) 
+  shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[7], 0.25))
+  shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[8], 0.25))
+  abline(v=median(post_plot6) , col = col.alpha(col.pal[8], 0.5) ) 
+  legend("topright", legend = c("Kubu", "Noha"), col = col.pal[7:8] , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+  
+}
+
+######cues for global models
+
+
+kappa_global_plots <- function(x,extract=TRUE){
+  if (!extract) {
+    post <- post
+  } else {
+    post <- extract(x)
+  }
+  for (i in 1:5){
+    kpar_names <- c( "k_fem" , "k_kin" , "k_pay" , "k_rank" , "k_sex")
+    
+    post_plot1 <- post$S[,4+i,1] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
+    post_plot2 <-post$S[,4+i,2] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
+    dens(post_plot1 , main=kpar_names[i] , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot1, post_plot2)) , col="white")##phi
+    abline(v=median(post_plot1) ,col = col.alpha(col.pal[2*i-1], 0.5) ) 
+    shade( density(post_plot1) , lim= as.vector(HPDI(post_plot1, prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
+    shade( density(post_plot2) , lim= as.vector(HPDI(post_plot2, prob=0.9999)) , col = col.alpha(col.pal[2*i], 0.25))
+    abline(v=median(post_plot2) , col = col.alpha(col.pal[2*i], 0.5) ) 
+    legend("topright", legend = c("female", "male"), col = c(col.pal[2*i-1], col.pal[2*i]) , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+    
+    #age diff
+    post_plot_j <- post$S[,4+i,1] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
+    post_plot_a <-post$S[,4+i,2] + apply(post$A[,4+i,] + post$G[,,4+i] , 1 , mean) + apply( post$I[,,4+i], 1 ,mean )
+    dens(post_plot_a , main=kpar_names[i] , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot_a, post_plot_j)), col="white")
+    abline(v=median(post_plot_j) ,col = col.alpha(col.pal[2*i-1], 0.5) ) 
+    shade( density(post_plot_j) , lim= as.vector(HPDI(post_plot_j, prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
+    shade( density(post_plot_a) , lim= as.vector(HPDI(post_plot_a, prob=0.9999)) , col = col.alpha(col.pal[2*i], 0.25))
+    abline(v=median(post_plot_a) , col = col.alpha(col.pal[2*i], 0.5) ) 
+    legend("topright", legend = c("juvenile", "adult"), col = c(col.pal[2*i-1], col.pal[2*i]) , pch = 9, bty = "n", pt.cex = 0.5, cex = 0.5 )
+    
+    #group_diff
+    post_plot5 <- post$G[,1,4+i] + apply( post$A[,4+i,] + post$S[,4+i,] , 1 ,mean) + apply( post$I[,,4+i], 1 ,mean )
+    post_plot6 <- post$G[,2,4+i] + apply( post$A[,4+i,] + post$S[,4+i,] , 1 ,mean) + apply( post$I[,,4+i], 1 ,mean )
+    dens(post_plot5 , main=kpar_names[i] , xlim=c(0,5) , xlab="strength of cue-bias" , ylim=c(0,densmax_y(post_plot5, post_plot6)) , col="white")##phi
+    abline(v=median(post_plot5) ,col = col.alpha(col.pal[2*i-1], 0.5) ) 
+    shade( density(post_plot5) , lim= as.vector(HPDI(post_plot5, prob=0.9999)) , col = col.alpha(col.pal[2*i-1], 0.25))
+    shade( density(post_plot6) , lim= as.vector(HPDI(post_plot6, prob=0.9999)) , col = col.alpha(col.pal[2*i], 0.25))
+    abline(v=median(post_plot6) , col = col.alpha(col.pal[2*i], 0.5) ) 
+    legend("topright", legend = c("Kubu", "Noha"), col = c(col.pal[2*i-1], col.pal[2*i]) , pch = 19, bty = "n", pt.cex = 0.5, cex = 0.5 )
+    
+    
+  }
+}
+
+ ```
 ## R Markdown
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 ## Analytical Approach
 
-To analyze these models we used a series of expereience-weighted attraction models. These are hierarchical dynamical time-series models that evaluate the joint influence of personal and social information on an individual displaying behavior. These models closely link our statistical model to hypothesized data generating processes, blah blah blah...
+To analyze these models we used a series of expereience-weighted attraction models. These are hierarchicaltime-series models that evaluate the joint influence of personal and social information on the proability of individual displaying behavior. These models have advanteges over other approaches as they are flexible, closely link theoretical models to the statistical models we use to analyze data, allow evaluation of multiple hypothesized social learning straetegies whose dynamics may be equifinal, and link individual variation in behavior to predict population-level cultural dynamics. 
 
 
 We fit a series of models evaluating the following learning strategies:
@@ -43,11 +287,13 @@ We fit a series of models evaluating the following learning strategies:
   + linear-copying (copy behavior proportional to its frequency-- also siilar to random or oblique copying)
   + negative frequency dependence(i.e. bias towards copying rare behavior or anti-conformity-bias)
 3. Female-biased learning (bias towards copying females in group i.e. matrilineal sex in vervets)
-4. Kin-biased learning  (copy individuals closel related, cue is coefficient of relatedness)
-5. Payoff-biased learning  (copy succeful behavior, payoff is 1 if succeful,0 if not)
-6. Rank-biased learning (copy high-ranking individual- based off of the rank values given to me forgetting what they are called)
+4. Kin-biased learning  (copy individuals closest related, cue is coefficient of relatedness)
+5. Payoff-biased learning  (copy successful behavior, payoff is 1 if succesful, 0 if not)
+6. Rank-biased learning (copy high-ranking individual- based off of the rank values given using Devries IS \& I index)
 7. Sex-biased learning (copy behaviors of individuals that are the same sex as you)
 8. A global model that includes 1-6 which we will interpret as it is most informative.
+
+For each behavioral choice, social information used by actor was a average values of each cue observed in a time window of 20 minutes prior to the observation. As individuals access social information at different timescales, and this window choice was somewhat arbitrary, we evaluated social info at 20, 10, and 5 minutes timescales as well.
 
 We run the models using regularizing priors and a cholesky decomposition on the varying effects. They were fit using RStan version XXX on an RStudio Server. All data and code for this analysis can be found on my github.
 
@@ -57,58 +303,375 @@ EWA models have two parts: a set of expressions that specify how individuals acc
 \begin{align}
 A_{{ij},t+1} &= (1-\phi_{j})A_{ij,t} + \phi_{j}\pi_{ij,t}
 \end{align}
+
 The parameter $\phi_j$ controls the importance of recent pay-offs in influencing attraction scores. When $\phi_j$ is high, more weight is given to recent experience over past expereinces-- memory has less of an influence on behavioral choice. This parameter is unique to an individual $j$, and we estimate how it varies by age and sex class in .
 
  Attraction scores are converted into probabilities of behavioural choice,using a standard multinomial logistic, or \emph{soft-max}, choice rule:
 \begin{align}
-\Pr(i|A_{ijt},\lambda_j) &= \frac{\exp(\lambda_j A_{ij,t})}{\sum\limits_{k} \exp($\lambda_j A_{kj,t})} = I_{ij}
+\Pr(i|A_{ijt},\lambda_j) &= \frac{\exp(\lambda_j A_{ij,t})}{\sum\limits_{k} \exp(\lambda_j A_{kj,t})} = I_{ij}
 \end{align}
-The parameter $\lambda_j$ controls sensitivity to differences in attraction scores on behavioral choice and is unique to an individual $j$. A very large $\lambda_j$ ,means the choice with the largest attraction score is nearly always selected. When $\lambda=0$, choice is random with respect to attraction score. Individuals were assigned a pay-off of zero, $\pi_{ij,t}=0$, if they failed to open a peanut. If they were successful, a pay-off of 1 was assigned.
+
+The parameter $\lambda_j$ controls sensitivity to differences in attraction scores on behavioral choice and is unique to an individual $j$. A very large $\lambda_j$ ,means the option with the largest attraction score is nearly always selected. When $\lambda=0$, choice is random with respect to attraction score. Individuals were assigned a pay-off of zero, $\pi_{ij,t}=0$, if they failed to open a peanut. If they were successful, a pay-off of 1 was assigned.
 
 Social learning may influence choice directly and distinctly from individual learning. Let $S_{ij} = S(i|\mathbf \Theta_j)$ be the probability an individual $j$ chooses behaviour $i$ on the basis of a set of social cues and parameters $\mathbf \Theta_j$. Realized choice is given by:
 \begin{align}
 \Pr(i|A_{ij,t},\mathbf \Theta_j) = (1-\gamma_j)I_{ij,t} + \gamma_j S_{ij,t}
 \end{align}
+
 where $\gamma_j$ is the weight, between 0 and 1, assigned to social cues.
 
 Social cues are incorporated into $S_{ij,t}$ by use of a multinomial probability expression with a log-linear component $B_{ij,t}$ that is an additive combination of cue frequencies. The probability of each behavioral option $i$, as a function only of social cues, is:
+
 \begin{align}
 S_{ij,t} &= \frac{N_{ij,t}^f \exp{B_{ij,t}} }{\sum_m N_{mj,t}^f \exp{B_{mj,t}} } \label{expr:Sijt}
 \end{align}
-The $N_{ij,t}$ variables are the observed frequencies of each technique $i$ at time $t$ by individual $j$. The exponentiated parameter $f^c$ controls the amount and type of frequency dependence. When $f=1$, social learning is unbiased by frequency and techniques influence choice in proportion to their occurrence. When $f>1$, social learning is conformist. Other social cues, like pay-off, are incorporated via the $B_{ij,t}$ term:
+
+The $N_{ij,t}$ variables are the observed frequencies of each technique $i$ at time $t$ by individual $j$. The exponentiated parameter $f^c$ controls the amount and type of frequency dependence. When $f=1$, social learning is unbiased by frequency and techniques influence choice in proportion to their occurrence. When $f>1$, social learning is conformist. Other social cues, like rank, relatedness, and pay-off, are incorporated via $B_{ij,t}$ term:
+
 \begin{align}
 B_{ijt} &= \sum_k \beta_k \kappa_{k,ijt}
 \end{align}
-This is the sum of the products of the influence parameters $\beta_k$ and the cue values $\kappa_{k,ijt}$. We consider five cues: 
-\begin{enumerate}
-\item Pay-off. $\kappa=\log(t_\text{open})^{-1}$ or, for failure, $\kappa=0$.
-\item Demonstrator rank. $\kappa=1$ for alpha rank, 0 otherwise.
-\item Matrilineal kinship. $\kappa=1$ for matrilineal kin, 0 otherwise.
-\item Age similarity. $\kappa$ is defined as the inverse absolute age difference: $(1+ |\text{age}_\text{demonstrator} - \text{age}_\text{observer}|)^{-1}$.
-\item Age bias. $\kappa= \text{age}_\text{demonstrator}$.
-\end{enumerate}
 
-The final components needed are a way to make the individual-level parameters depend upon individual state and a way to define the window of attention for social cues at each time $t$. The parameters $\gamma_j$ and $\phi_j$ control an individual $j$'s use of social cues and rate of attraction updating, respectively. We model these parameters as logistic transforms of a linear combination of predictors. For example, the rate of updating $\phi_j$ for an individual $j$ is defined as: 
+<!-- This is the sum of the products of the influence parameters $\beta_k$ and the cue values $\kappa_{k,ijt}$. We consider five cues: -->
+<!-- \begin{enumerate} -->
+<!-- \item Pay-off. $\kappa=1$ if peanut successfully opened, for failure, $\kappa=0$. -->
+<!-- \item Demonstrator rank. $\kappa$= linear rank estimated using th I and SI method  de Vries 1998$ -->
+<!-- \item Kinship. $\kappa=$ coeffecient of relatedness, $r$. -->
+<!-- \item Sex-bias. $\kappa$ is the number of times a behavior was observed by individuals of the same sex as the observer. -->
+<!-- \item Age bias. $\kappa= \text{age}_\text{demonstrator}$. -->
+<!-- \end{enumerate} -->
+
+The final components needed are a way to make the individual-level parameters depend upon individual state and a way to define the window of attention for social cues at each time $t$. The parameters $\gamma_j$ and $\phi_j$ control an individual $j$'s use of social cues and rate of attraction updating, respectively. We model these parameters as logistic transforms of a linear combination of predictors. For example, the rate of updating $\phi_j$ for an individual $j$ is defined as:
+We wish to make each parameter dependent upon individual-level state variables for each individual $j$. We also want accont for heterogeneity in our estimates among groups and individuals by partially-pooling information using a varying effects information. For example, the rate of attraction score updating estimated at each observation $i$ in the dataset, $\phi_i$ is defined as:
 \begin{align}
-\mathrm{logit}(\phi_j) &= \alpha_j + \mu_\phi \times \text{age}_{j}
+\mathrm{logit}(\phi_i) &= I_{j[i]} + G_{g[i]} + A_{[i]} + S_{[i]} 
 \end{align}
 
+where $I_j$ is the individual-level varying effect of the actor $j$ and $G_g$ is the group-level varying effect in group $g$. For individual-level state variables $A_[i]$ predicts difference in age classes (juvenile and adult) coded as a index variable. $S_[i]$ predicts differences in sex classes (male and female) coded as a index variable. We use index variable, instead of dummy varaibles to assign equal prior uncertainty to each category.
+
+Below is the raw stan model code if you desire to link that to the global model.
+
+```{R stancode global}
+stancode(fit_global)
+```
 #Results
-For a social information window of 20 minutes, we found that the global model best predcited our observed data, compared to a mode that evaluated any one particular social learning strategy. Of the individual social learning stratgies WAIC values best supported the payoff-biased learning model, foloowed by rank-bias, and frequency-dependent learning.
+For a social information window of 20 minutes, we found that the global model best predcited our observed data, compared to a mode that evaluated any one particular social learning strategy. Of the individual social learning stratgies WAIC values best supported the payoff-biased learning model, foloowed by rank-bias, and frequency-dependent learning. I WILL ADD THIS TABLE ON FINAL RUN WHEN I RUN THINGS ON SERVER-- CALCULATING IT MAKES MY COMPUTER CRASH.
 
 I need to add payoff model in this workspace, it is running now.
 
 ```{r WAIC table}
-# WAICtab <- compare(fit_i, fit_freq, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
-# WAICtab
 WAIC(fit_global)
 ```
+Overall, our global model does a good job of predicting the data and gets all weight from WAIC scores. If we look at the models evaluating individual social learning strategies we see good support for payoff- and rank-biased learning.  
 
-
+The below figure shows empirical estimates of the proportion of frequency of technicques used within a group on an experimental day across all inidividuals. We plot model predictions of the average posterior probability of behavioral choices of all observations in a group within a day aver the raw observed proprtions. Note the uncertainty of the predictions of Kubu, this is due to the low sample size on many of the days; often only 1-3 peanuts were open on these days.
 ## Raw Data Plots
-```{r group level plots, echo=FALSE}
-post <- extract(fit_freq)
-str(post)
-dens(exp(post$A[,1,1]  ))
+```{r individual level plots, echo=FALSE}
+post <- extract(fit_global)
+###################modify data frame
+
+library(RColorBrewer)
+col.pal=brewer.pal(3,"Accent")
+d$group_index <- as.integer(d$group)
+d$nobs_group_all <- d$nobs_group_ch <- d$nobs_group_cms <- d$nobs_group_cmt <- d$nobs_id_all <- d$nobs_id_ch <- d$nobs_id_cms <- d$nobs_id_cmt <-  66
+
+for (i in 1:nrow(d) ) {
+  d$nobs_group_all[i] <- length(unique(d$obs_index[d$group_index==d$group_index[i] & d$date_index==d$date_index[i] ] ) )
+  d$nobs_group_ch[i] <- length(unique(d$obs_index[d$group_index==d$group_index[i] & d$date_index==d$date_index[i] & d$technique_index==1 ] ) )
+  d$nobs_group_cms[i] <- length(unique(d$obs_index[d$group_index==d$group_index[i] & d$date_index==d$date_index[i] & d$technique_index==2 ] ) )
+  d$nobs_group_cmt[i] <- length(unique(d$obs_index[d$group_index==d$group_index[i] & d$date_index==d$date_index[i] & d$technique_index==3 ] ) )
+  d$nobs_id_all[i] <- length(unique(d$obs_index[d$ID_actor==d$ID_actor[i] & d$date_index==d$date_index[i] ] ) )
+  d$nobs_id_ch[i] <- length(unique(d$obs_index[d$ID_actor==d$ID_actor[i] & d$date_index==d$date_index[i] & d$technique_index==1 ] ) )
+  d$nobs_id_cms[i] <- length(unique(d$obs_index[d$ID_actor==d$ID_actor[i] & d$date_index==d$date_index[i] & d$technique_index==2 ] ) )
+  d$nobs_id_cmt[i] <- length(unique(d$obs_index[d$ID_actor==d$ID_actor[i] & d$date_index==d$date_index[i] & d$technique_index==3 ] ) )
+}
+  ######################get predictions for each individual##################
+dg <- list(
+  N = nrow(d),                            #length of dataset
+  J = length( unique(d$ID_actor_index) ),  #number of individuals
+  K = max(d$technique_index),         #number of processing techniques
+  tech = d$technique_index,           #technique index
+  y = cbind( d$y1 , d$y2 , d$y3 ),    #individual payoff at timestep (1 if succeed, 0 is fail)
+  s = cbind( d$freq1 , d$freq2 , d$freq3 ), #observed counts of all K techniques to individual J (frequency-dependence)
+  f = cbind( d$fem1 , d$fem2 , d$fem3 ),
+  k = cbind( d$kin1 , d$kin2 , d$kin3 ),
+  p = cbind( d$pay1 , d$pay2 , d$pay3 ),
+  r = cbind( d$rank1 , d$rank2 , d$rank3 ),
+  x = cbind( d$sex1 , d$sex2 , d$sex3 ),
+  bout = d$forg_bout, #bout is forg index  unique to individual J
+  id = d$ID_actor_index ,                                           #individual ID
+  sex_index=d$sex_index,
+  age_index=d$age_index,
+  group_index=d$group_index,
+  N_effects=9                                                                        #number of parameters to estimates
+)
+
+dg$s <- dg$s/ max(dg$s)
+dg$f <- dg$f / max(dg$f)
+dg$k <- dg$k/ max(dg$k)
+dg$p <- dg$p/ max(dg$p)
+dg$r <- dg$r/ max(dg$r)
+dg$x <- dg$x/ max(dg$x)
+dg$obs_index <-  d$obs_index
+
+AC=PrS=PrA=lin_mod=s_temp=rep(0,3) #stroage slots for calculating predictions
+
+Preds = array(0,dim=c(nrow(d),3,max(d$ID_actor_index))) #predictions for all individuals, all techniques, across all timesteps
+Preds2 = array(0,dim=c(nrow(d),3)) ##predictions for all individuals, all techniques, at times when they foraged
+
+for ( i in 1:dg$N ) {
+  
+  if ( dg$bout[i]==1 ) { ##see if this needs to be removed
+    
+    lambda = median( exp( post$I[,dg$id[i],1] + post$G[,dg$group_index[i],1] + post$A[,1,dg$age_index[i]] + post$S[,1,dg$sex_index[i]] ) )
+    phi= median(inv_logit(  post$I[,dg$id[i],2] + post$G[,dg$group_index[i],2] +  post$A[,2,dg$age_index[i]] + post$S[,2,dg$sex_index[i]] ) )
+    gamma = median(inv_logit(post$I[,dg$id[i],3] + post$G[,dg$group_index[i],3] + post$A[,3,dg$age_index[i]] + post$S[,3,dg$sex_index[i]] ) )
+    fc =  median(exp(post$I[,dg$id[i],4] + post$G[,dg$group_index[i],4] + post$A[,4,dg$age_index[i]] + post$S[,4,dg$sex_index[i]]) )
+    bf =  median(post$I[,dg$id[i],5] + post$G[,dg$group_index[i],5] + post$A[,5,dg$age_index[i]] + post$S[,5,dg$sex_index[i]] )
+    bk =  median(post$I[,dg$id[i],6] + post$G[,dg$group_index[i],6] + post$A[,6,dg$age_index[i]] + post$S[,6,dg$sex_index[i]] )
+    bp =  median(post$I[,dg$id[i],7] + post$G[,dg$group_index[i],7] + post$A[,7,dg$age_index[i]] + post$S[,7,dg$sex_index[i]] )
+    br =  median(post$I[,dg$id[i],8] + post$G[,dg$group_index[i],8] + post$A[,8,dg$age_index[i]] + post$S[,8,dg$sex_index[i]] )
+    bx =  median(post$I[,dg$id[i],9] + post$G[,dg$group_index[i],9] + post$A[,9,dg$age_index[i]] + post$S[,9,dg$sex_index[i]] )
+  }
+  
+  for ( j in 1:3 ) {
+    if ( dg$bout[i] > 1 ) {
+      AC[j] = (1-phi)*AC[j] + phi*dg$y[i-1,j]
+    } else {
+      AC[j] = 0
+    }
+  }
+  
+  for (j in 1:3){ PrA[j] = exp(lambda*AC[j])/sum(exp(lambda*AC))}
+  
+  if ( dg$bout[i] > 1 ) {
+    if (sum( dg$s[i,] ) > 0 ) { 
+      for ( j in 2:3 ) {
+        lin_mod[j] = exp( bf*dg$f[i,j] + bk*dg$k[i,j] + bp*dg$p[i,j] + br*dg$r[i,j] + bx*dg$x[i,j] )
+      }
+      lin_mod[1] = 1
+      
+      for ( j in 1:3 ){  s_temp[j] = dg$s[i,j]^fc }
+      for ( j in 1:3 ){ lin_mod[j] = lin_mod[j] * s_temp[j] }
+      
+      for (j in 1:3){PrS[j] = lin_mod[j]/sum(lin_mod)}
+      
+      
+      for(j in 1:3){ Preds[i,j,dg$id[i]] = (1-gamma)*PrA[j] + gamma*PrS[j] 
+      Preds2[i,j] = (1-gamma)*PrA[j] + gamma*PrS[j]
+      }
+      
+    } else {
+      for(j in 1:3){ Preds[i,j,dg$id[i]]= PrA[j] 
+      Preds2[i,j] = PrA[j]}
+    }
+  } else {
+    for(j in 1:3){ Preds[i,j,dg$id[i]]= PrA[j]
+    Preds2[i,j] = PrA[j] }
+  }
+}
+
+# str(Preds2)
+# plot(1:3000,Preds2[1:3000,1] , col= col.pal[1] , pch=19 , ylim=c(0,1))
+# points(1:3000,Preds2[1:3000,2] , col= col.pal[2] , pch=19 )
+# points(1:3000,Preds2[1:3000,3] , col= col.pal[3] , pch=19 )
+
+d$p1 <- Preds2[,1]
+d$p2 <- Preds2[,2]
+d$p3 <- Preds2[,3]
+
+for(k in 1:nrow(d)){
+  d$succeed[k] <- ifelse(sum(d$y1[k],d$y2[k],d$y3[k])>0 , 1 , 0) ##0 if failure, 1 if success
+  }
+
+d$succeed[d$ID_actor_index==i]
+
+#begin plot
+# par( mfrow=c(3, 1) , mar=c(3,3,3,1) , oma=c(4,4,.5,.5) )
+# par(cex = 0.5)
+# par(tcl = -0.2)
+#par(mgp = c(2, 0.6, 0))
+oma=c(1,1,.5,.5)
+par( mfrow=c(2, 1) , oma=c(1,1,.5,.5) , cex = 0.5 )
+plot.new()
+legend("top", inset=0.1, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=2,bty = "n" )
+legend("bottom", inset=0.1, c("failure","success") , pch=c(1,19), horiz=TRUE,cex=2,bty = "n")
+
+for(i in 1:max(d$ID_actor_index)){
+  plot( p1 ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1.15) , ylab="prob using technique" , xlab="foraging bout",  main=unique(d$ID_actor[d$ID_actor_index==i]) ,cex.lab=0.75)
+  lines(p1 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l")
+  points(p2 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2])
+  lines(p2 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l")
+  points(p3 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3])
+  lines(p3 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l")
+  nobsi <- nrow(d[d$ID_actor_index==i,])
+  points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]]) #empty circels are failure, filled are successes
+  abline(h=1)
+}
 ```
 
+
+```{r group level kubu plots , echo=FALSE}
+################global predictions across days##############
+dg2 <- aggregate(cbind(d$nobs_group_ch , d$nobs_group_cms , d$nobs_group_cmt, d$p1 , d$p2 , d$p3 ) , list(Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index , nobs_group_ch=d$nobs_group_ch , nobs_group_cms=d$nobs_group_cms , nobs_group_cmt=d$nobs_group_cmt , nobs_group_all=d$nobs_group_all ) , mean ) #gets neat summary table for plot
+
+
+dg2$V1 <-  dg2$V1/dg2$nobs_group_all
+dg2$V2 <-  dg2$V2/dg2$nobs_group_all
+dg2$V3 <-  dg2$V3/dg2$nobs_group_all
+dg2 <- dg2[order( dg2$date_index),]
+
+
+##group level noha plots raw data
+dgNoha <- dg2[dg2$group=="Noha",]
+dgKubu <- dg2[dg2$group=="Kubu",]
+
+##group level plots for kubu
+##group level plots for Kubu
+plot(dgKubu$V1~dgKubu$date_index , col=col.pal[1] , pch=1 , ylim=c(0,1.1) , xlim=c(0,18) , ylab="freq of behavior in group" , xlab="experimental day" , cex=3*dgKubu$nobs_group_all/max(dgKubu$nobs_group_all) , main="Kubu" ) 
+lines(dgKubu$V1~dgKubu$date_index , col=col.pal[1] , type="l" , lty=3)
+points(dgKubu$V2~dgKubu$date_index , col=col.pal[2] , pch=1 , cex=3*dgKubu$nobs_group_all/max(dgKubu$nobs_group_all))
+lines(dgKubu$V2~dgKubu$date_index , col=col.pal[2] , type="l" , lty=3)
+points(dgKubu$V3~dgKubu$date_index , col=col.pal[3] , pch=1 , cex=3*dgKubu$nobs_group_all/max(dgKubu$nobs_group_all))
+lines(dgKubu$V3~dgKubu$date_index , col=col.pal[3] , type="l" , lty=3)
+points(dgKubu$V4~dgKubu$date_index , col=col.pal[1] , pch=19 )
+lines(dgKubu$V4~dgKubu$date_index , col=col.pal[1] , type="l")
+points(dgKubu$V5~dgKubu$date_index , col=col.pal[2] , pch=19 )
+lines(dgKubu$V5~dgKubu$date_index , col=col.pal[2] , type="l")
+points(dgKubu$V6~dgKubu$date_index , col=col.pal[3] , pch=19 )
+lines(dgKubu$V6~dgKubu$date_index , col=col.pal[3] , type="l")
+legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex=1 , pch=19 , horiz=TRUE )
+legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE)
+```
+
+```{r group level noha plots , echo=FALSE}
+##group level plots for noha
+plot(dgNoha$V1~dgNoha$date_index , col=col.pal[1] , pch=1 , ylim=c(0,1.1) , xlim=c(0,18) , ylab="freq of behavior in group" , xlab="experimental day" , cex=3*dgNoha$nobs_group_all/max(dgNoha$nobs_group_all) , main="Noha" ) 
+lines(dgNoha$V1~dgNoha$date_index , col=col.pal[1] , type="l" , lty=3)
+points(dgNoha$V2~dgNoha$date_index , col=col.pal[2] , pch=1 , cex=3*dgNoha$nobs_group_all/max(dgNoha$nobs_group_all))
+lines(dgNoha$V2~dgNoha$date_index , col=col.pal[2] , type="l" , lty=3)
+points(dgNoha$V3~dgNoha$date_index , col=col.pal[3] , pch=1 , cex=3*dgNoha$nobs_group_all/max(dgNoha$nobs_group_all))
+lines(dgNoha$V3~dgNoha$date_index , col=col.pal[3] , type="l" , lty=3)
+points(dgNoha$V4~dgNoha$date_index , col=col.pal[1] , pch=19 )
+lines(dgNoha$V4~dgNoha$date_index , col=col.pal[1] , type="l")
+points(dgNoha$V5~dgNoha$date_index , col=col.pal[2] , pch=19 )
+lines(dgNoha$V5~dgNoha$date_index , col=col.pal[2] , type="l")
+points(dgNoha$V6~dgNoha$date_index , col=col.pal[3] , pch=19 )
+lines(dgNoha$V6~dgNoha$date_index , col=col.pal[3] , type="l")
+legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex=1 , pch=19 , horiz=TRUE )
+legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE)
+```
+
+## Results and Model Interpretation
+
+```{r fakeHPDI , echo=FALSE}
+fakeHPDI <- HPDI(post$S[,1,1])
+```
+try this output inline `r fakeHPDI` and see what happens
+
+Now I will go through all of the model parameters and we can interpret them and discuss any noteworty observations later on.
+```{R varyeffectscalc , echo=FALSE}
+l4p <- unique(subset( d , select=c("sex_index" , "age_index" , "ID_actor_index" , "group_index" , "ID_actor")))
+
+lambda_list <- phi_list <- gamma_list <- fc_list <- beta_fem_list <- beta_kin_list <- beta_pay_list <- beta_rank_list <- beta_sex_list <-  as.list(as.data.frame(matrix(0, nrow=length(post$I[,1,1]) , ncol=nrow(l4p) + 2  )))
+
+
+for (i in 1:2){
+  lambda_list[[i]] = exp( post$G[,i,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
+  phi_list[[i]] = logistic( post$G[,i,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean) + apply( post$I[,,2], 1 ,mean ))
+  gamma_list[[i]] = logistic( post$G[,i,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean) + apply( post$I[,,3], 1 ,mean ))
+  fc_list[[i]] = exp( post$G[,i,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
+  beta_fem_list[[i]] = post$G[,i,5] + apply( post$A[,5,] + post$S[,5,] , 1 ,mean) + apply( post$I[,,5], 1 ,mean )
+  beta_kin_list[[i]] = post$G[,i,6] + apply( post$A[,6,] + post$S[,6,] , 1 ,mean) + apply( post$I[,,6], 1 ,mean )
+  beta_pay_list[[i]] = post$G[,i,7] + apply( post$A[,7,] + post$S[,7,] , 1 ,mean) + apply( post$I[,,7], 1 ,mean )
+  beta_rank_list[[i]] = post$G[,i,8] + apply( post$A[,8,] + post$S[,8,] , 1 ,mean) + apply( post$I[,,8], 1 ,mean )
+  beta_sex_list[[i]] = post$G[,i,9] + apply( post$A[,9,] + post$S[,9,] , 1 ,mean) + apply( post$I[,,9], 1 ,mean )
+}
+
+for (i in 1:34){
+  lambda_list[[i+2]] = exp( post$I[,l4p$ID_actor_index[i],1] + post$G[,l4p$group_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] )
+  phi_list[[i+2]] = logistic( post$I[,l4p$ID_actor_index[i],2] + post$G[,l4p$group_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) 
+  gamma_list[[i+2]] = logistic( post$I[,l4p$ID_actor_index[i],3] + post$G[,l4p$group_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) 
+  fc_list[[i+2]] = exp( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]]  + post$S[,4,l4p$sex_index[i]] )
+  beta_fem_list[[i+2]] = post$I[,l4p$ID_actor_index[i],5] + post$G[,l4p$group_index[i],5] + post$A[,5,l4p$age_index[i]] + post$S[,5,l4p$sex_index[i]] 
+  beta_kin_list[[i+2]] = post$I[,l4p$ID_actor_index[i],6] + post$G[,l4p$group_index[i],6] + post$A[,6,l4p$age_index[i]] + post$S[,6,l4p$sex_index[i]] 
+  beta_pay_list[[i+2]] = post$I[,l4p$ID_actor_index[i],7] + post$G[,l4p$group_index[i],7] + post$A[,7,l4p$age_index[i]] + post$S[,7,l4p$sex_index[i]] 
+  beta_rank_list[[i+2]] = post$I[,l4p$ID_actor_index[i],8] + post$G[,l4p$group_index[i],8] + post$A[,8,l4p$age_index[i]] + post$S[,8,l4p$sex_index[i]] 
+  beta_sex_list[[i+2]] = post$I[,l4p$ID_actor_index[i],9] + post$G[,l4p$group_index[i],9] + post$A[,9,l4p$age_index[i]] + post$S[,9,l4p$sex_index[i]] 
+}
+```
+### $\lambda$ - Sensitivity to attraction scores.
+$\lambda$ estimates the sensituivity of an individual to an attraction score, when lambda is low individuals are less attracted to  options with the highest score and are more likely to switch between behaviors.
+
+```{r lambdaplots , echo=FALSE , fig.width = 5, fig.asp = .33 ,  fig.cap = "Dot plot of posterior predictions of lambda across age and sex classes"}
+plambda <- list(
+  lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  lambda_juv = exp(post$A[,1,1] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+)
+plot(precis(plambda , depth=2 ) )
+```
+
+```{r lambdaprecis , echo=TRUE}
+precis(plambda, hist=FALSE , depth=2)
+```
+
+```{r lambdaplotsglobal , echo=TRUE,  fig.width = 2.4, fig.asp = .99 , fig.cap = "Plots of posterior distributions of lambda across age and sex classes"}
+lambda_plots(fit_global , extract=FALSE)
+```
+
+```{r lambdaplotsvaryeff , echo=TRUE,  fig.width = 5, fig.asp = 2 , fig.cap = "Dot plot of posterior predictions on varying effects of lambda across groups and age classes"}
+labels <- paste( "lambda" , c( levels(d$group) , 1:34) , sep="_"  )
+plot(precis(lambda_list) , labels=labels , xlim=c(0,60) )
+```
+### $\phi$ - weight given to recent experience.
+$\phi$ estimates the weight given to recent vs. past experience, and can be concienved of as a memory parameter. MAthematically, it functions asthe weighting parameter of an exponeitial moving average.
+In the extreme cases, when $\phi$ is zero, individuals do not exhibit memory and past experience does not influence behavior. When $\phi$ is one, cannot update information and will not change behaviors in light of new evidence over time. Another way of viewing this is that the lower $\phi$ is the more weight past experience has on influenceing behavior and the less likely an indivivdual is to update new information.
+
+```{r phidotplots , echo=FALSE , fig.width = 5, fig.asp = .33 , fig.cap = "Dot plot of posterior predictions of phi across age classes, sex classes, and group. Bars are 89 percent CI."}
+
+plogits <- list(
+  phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+)
+
+plot(precis(plogits , depth=2) )
+```
+
+```{r phiprecis , echo=TRUE}
+precis(plogits, depth=2, hist=FALSE)
+```
+
+```{r phiplotsglobal , echo=TRUE,  fig.width = 2.4, fig.asp = .99 , fig.cap = "Plots of posterior distributions of phi across age classes, sex classes and group"}
+phi_plots(fit_global , extract=FALSE)
+```
+
+```{r phiplotsvaryeff , echo=TRUE,  fig.width = 5, fig.asp = 2}
+labels <- paste( "phi" , c( levels(d$group) , 1:34) , sep="_"  )
+plot(precis(phi_list) , labels=labels )
+```
+### $\gamma$ - weight given social information.
+```{r gammaprecis , echo=TRUE}
+precis(plogits, depth=2, hist=FALSE)
+```
+
+```{r gamma dotplots , echo=FALSE , fig.width = 5, fig.asp = .33 , fig.cap = "Dot plot of posterior predictions of gamma across age classes, sex classes, and group. Bars are 89 percent CI."}
+
+plogits <- list(
+  gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_juv = logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+)
+plot(precis(plogits , depth=2 ) )
+```
+
+```{r gammaplotsvaryeff , echo=TRUE,  fig.width = 5, fig.asp = 2}
+labels <- paste( "gamma" , c( levels(d$group) , 1:34) , sep="_"  )
+plot(precis(gamma_list), labels=labels)
+```
+
+### $f_c$ - strength of frequency dependence.

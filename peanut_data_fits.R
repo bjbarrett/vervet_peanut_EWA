@@ -103,6 +103,10 @@ datalist_s$q <- datalist_s$q / max(datalist_s$q)
 fit_fem = stan( file = 'ewa_cue.stan', data = datalist_s ,iter = 6000, warmup=3000, chains=4, cores=4, control=list(adapt_delta=0.99) , pars=parlist, refresh=100 , init=0)
 fit_global = stan( file = 'ewa_global.stan', data = datalist_g ,iter = 6000, warmup=3000, chains=4, cores=4, control=list(adapt_delta=0.9999 ,  max_treedepth = 15) , pars=parlist, refresh=100 , init=0)
 
+WAICtab <- compare(fit_i, fit_freq, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
+library(rethinking)
+save(d,fit_i, fit_freq, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global,WAICtab, file="vervet_peanut_ewa_20min_25April2020.rdata")
+
 
 ########inspect parameters and fits########
 precis(fit_global, depth=3 , pars=c('A' , 'S'))

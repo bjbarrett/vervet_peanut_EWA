@@ -1,7 +1,8 @@
 library(rethinking)
 library(RColorBrewer)
 #load("/Users/BJB/Downloads/20min_slopes_VervetPNUTindex.rdata")
-load("~/Downloads/vervet_peanut_ewa_20min_25April2020.rdata")
+
+load("/Users/BJB/Dropbox/Vervets/vervet_peanut_EWA/vervet_peanut_ewa_20min_25April2020.rdata")
 ###############################
 ########raw data plots#########
 ################################
@@ -171,17 +172,6 @@ for (i in sort(unique(diKubu$ID_actor_index)) ) {
 ####################################
 col.pal <- brewer.pal(12, "Paired")
 
-pre_lab_i <- c("log(lambda_female)" , "log(lambda_male)" , "logit(phi_female)" , "logit(phi_male)" , "log(lambda_juvenile)" , "log(lambda_adult)" , "logit(phi_juvenile)" , "logit(phi_adult)")
-plot(precis(fit_i, pars=c("S","A") , depth=3) ,  labels= pre_lab_i)
-pre_lab_f <- c("log(lambda_female)" , "log(lambda_male)" , "logit(phi_female)" , "logit(phi_male)" , "logit(gamma_female)" , "logit(gamma_male)", "log(fc_female)" , "log(fc_male)" ,"log(lambda_juvenile)" , "log(lambda_adult)" , "logit(phi_juvenile)" , "logit(phi_adult)", "logit(gamma_juvenile)" , "logit(gamma_adult)" ,  "log(fc_juvenile)" , "log(fc_adult)") 
-plot(precis(fit_freq, pars=c("S","A") , depth=3) ,  labels= pre_lab_f)
-pre_lab_cue <- c("log(lambda_female)" , "log(lambda_male)" , "logit(phi_female)" , "logit(phi_male)" , "logit(gamma_female)" , "logit(gamma_male)", "kappa_female" , "kappa_male" ,"log(lambda_juvenile)" , "log(lambda_adult)" , "logit(phi_juvenile)" , "logit(phi_adult)", "logit(gamma_juvenile)" , "logit(gamma_adult)" ,  "kappa_juvenile" , "kappa_adult") 
-plot(precis(fit_pay, pars=c("S","A") , depth=3) ,  labels= pre_lab_cue , main="fit_pay")
-plot(precis(fit_rank, pars=c("S","A") , depth=3) ,  labels= pre_lab_cue , main="fit_rank")
-plot(precis(fit_sex, pars=c("S","A") , depth=3) ,  labels= pre_lab_cue , main="fit_sex")
-plot(precis(fit_kin, pars=c("S","A") , depth=3) ,  labels= pre_lab_cue , main="fit_kin")
-plot(precis(fit_fem, pars=c("S","A") , depth=3) ,  labels= pre_lab_cue , main="fit_fem")
-
 #function to default maximize window lims to posterior density max
 densmax_y <- function(e,f){
   b <- max(density(e)$y)
@@ -192,9 +182,6 @@ densmax_y <- function(e,f){
 
 #lambda#
 dev.off()
-plot(precis(fit_pay , pars='S' , depth=3))
-plot(precis(fit_pay , pars='A' , depth=3))
-plot(precis(fit_i , pars=c('S' , 'A') , depth=3))
 
 lambda_plots <- function(x,extract=TRUE){ 
   
