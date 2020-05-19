@@ -2,12 +2,11 @@ library(rethinking)
 library(RColorBrewer)
 #load("/Users/BJB/Downloads/20min_slopes_VervetPNUTindex.rdata")
 
-load("/Users/BJB/Dropbox/Vervets/vervet_peanut_EWA/vervet_peanut_ewa_20min_25April2020.rdata")
+load("/Users/BJB/Downloads/vervet_peanut_ewa_20min_13May2020.rdata")##if working with existing workspace
 ###############################
 ########raw data plots#########
-################################
+###############################
 
-library(RColorBrewer)
 col.pal=brewer.pal(3,"Accent")
 d$group_index <- as.integer(d$group)
 d$nobs_group_all <- d$nobs_group_ch <- d$nobs_group_cms <- d$nobs_group_cmt <- d$nobs_id_all <- d$nobs_id_ch <- d$nobs_id_cms <- d$nobs_id_cmt <-  66
@@ -167,9 +166,89 @@ for (i in sort(unique(diKubu$ID_actor_index)) ) {
   lines(diKubu[diKubu$ID_actor_index==i,]$V2 ~ diKubu[diKubu$ID_actor_index==i,]$date_index , col=col.pal[2] , type="b" , lty=1 , , pch=19)
   lines(diKubu[diKubu$ID_actor_index==i,]$V3 ~ diKubu[diKubu$ID_actor_index==i,]$date_index , col=col.pal[3] , type="b" , lty=1 , , pch=19)
 }
+
+######individual level plots from posterior predictions#############3
+post <- extract(fit_global)
+preds<-post$PrPreds
+str(post$PrPreds)
+x1 <- post$PrPreds[,,1]
+x2 <- post$PrPreds[,,2]
+x3 <- post$PrPreds[,,3]
+
+m1 <- apply( x1 , 2 ,mean)
+m2 <- apply( x2 , 2 ,mean)
+m3 <- apply( x3 , 2 ,mean)
+
+ci1 <- apply( x1 , 2 ,HPDI)
+ci2 <- apply( x2 , 2 ,HPDI)
+ci3 <- apply( x3 , 2 ,HPDI)
+
+d$x1 <- m1
+d$x2 <- m2
+d$x3 <- m3
+
+col.pal=brewer.pal(3,"Accent")
+
+# plot(1:length(d$x1) ,d$x1 , col=col.pal[1] , xlim=c(0,1000) , ylim=c(0,1) , pch=19)
+# points(1:length(d$x2) , d$x2 , col=col.pal[2] , pch=19)
+# points(1:length(d$x3) , d$x3, col=col.pal[3] , pch=19)
+# legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex=0.75 , pch=19 , horiz=TRUE )
+
+
+# plot(d$date_index, d$x1 , col=col.alpha(col.pal[1], 0.1) , pch=19 , ylim=c(0,1) )
+# points(d$date_index, d$x2 , col=col.alpha(col.pal[2], 0.1) , pch=19)
+# points(d$date_index, d$x3 , col=col.alpha(col.pal[3], 0.1) , pch=19)
+# dp <- aggregate(cbind(d$x1 , d$x2 , d$x3 ) , list(Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index) , mean ) #gets neat summary table for plot
+#
+# plot(d$date_index, d$x1 , col=col.alpha(col.pal[1], 0.01) , pch=19)
+# plot(d$date_index, d$x2 , col=col.alpha(col.pal[2], 0.01) , pch=19)
+# plot(d$date_index, d$x3 , col=col.alpha(col.pal[3], 0.01) , pch=19)
+# dp <- aggregate(cbind(d$x1 , d$x2 , d$x3 ) , list(Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index) , mean ) #gets neat summary table for plot
+
+d$seq <- 1:nrow(d) #for graphing
+
+pdf("individual_peanut_vervet_preds_ci.pdf",width=8.5,height=11)
+par( mfrow=c(8, 1) , mar=c(3,3,3,1) , oma=c(4,4,.5,.5) )
+par(cex = 0.5)
+par(tcl = -0.2)
+par(mgp = c(2, 0.6, 0))
+plot.new()
+legend("top", inset=0.1, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=2,bty = "n" )
+legend("bottom", inset=0.1, c("failure","success") , pch=c(1,19), horiz=TRUE,cex=2,bty = "n")
+
+for(i in 1:max(d$ID_actor_index)){
+  plot( x1 ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1.15) , ylab="prob using technique" , xlab="foraging bout",  main=unique(d$ID_actor[d$ID_actor_index==i]) , type='l'  )
+  lines(x1 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=3)
+  lines(x2 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=3)
+  lines(x3 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=3)
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+  shade(ci1[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+  shade(ci2[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+  shade(ci3[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+  #raw data
+  nobsi <- nrow(d[d$ID_actor_index==i,])
+  points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]]) #empty circels are failure, filled are successes
+  abline(h=1)
+  
+  dstmp <- d$date_index[d$ID_actor_index==i]
+  dstmp_lab <- d$Date[d$ID_actor_index==i]
+  dstmp_i <- c(1,1+which(diff(dstmp)!=0)) #gives cutpoints of changes (to append dated)
+  abline(v=(dstmp_i-0.5) , col="grey")
+  text(x=(dstmp_i-0.5) , y=rep(1.2 , length(dstmp_i)) , labels=dstmp_lab[dstmp_i] , cex=0.5 , pos=3 , srt=20 , adj=0.5 , xpd=NA)
+  
+}
+
+dev.off()
+
+
 ####################################
 ###########plots of parameters######
 ####################################
+
 col.pal <- brewer.pal(12, "Paired")
 
 #function to default maximize window lims to posterior density max
@@ -631,6 +710,43 @@ for(i in 1:max(d$ID_actor_index)){
 }
 
 dev.off()
+
+post <- extract(fit_global)
+
+preds<-post$PrPreds
+str(post$PrPreds)
+x1 <- post$PrPreds[,,1]
+x2 <- post$PrPreds[,,2]
+x3 <- post$PrPreds[,,3]
+
+m1 <- apply( x1 , 2 ,mean)
+m2 <- apply( x2 , 2 ,mean)
+m3 <- apply( x3 , 2 ,mean)
+
+ci1 <- apply( x1 , 2 ,HPDI)
+ci2 <- apply( x2 , 2 ,HPDI)
+ci3 <- apply( x3 , 2 ,HPDI)
+
+d$x1 <- x1
+d$x2 <- x2
+d$x3 <- x3
+
+col.pal=brewer.pal(3,"Accent")
+plot(1:length(x1) ,x1 , col=col.pal[1] , xlim=c(0,500) , ylim=c(0,1) , pch=19)
+points(1:length(x2) , x2 , col=col.pal[2] , pch=19)
+points(1:length(x3) , x3, col=col.pal[3] , pch=19)
+legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex=0.75 , pch=19 , horiz=TRUE )
+
+
+plot(d$obs_index, d$x1 , col=col.alpha(col.pal[1], 0.01) , pch=19)
+plot(d$date_index, d$x2 , col=col.alpha(col.pal[2], 0.01) , pch=19)
+plot(d$date_index, d$x3 , col=col.alpha(col.pal[3], 0.01) , pch=19)
+dp <- aggregate(cbind(d$x1 , d$x2 , d$x3 ) , list(Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index) , mean ) #gets neat summary table for plot
+
+plot(d$date_index, d$x1 , col=col.alpha(col.pal[1], 0.01) , pch=19)
+plot(d$date_index, d$x2 , col=col.alpha(col.pal[2], 0.01) , pch=19)
+plot(d$date_index, d$x3 , col=col.alpha(col.pal[3], 0.01) , pch=19)
+dp <- aggregate(cbind(d$x1 , d$x2 , d$x3 ) , list(Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index) , mean ) #gets neat summary table for plot
 
 
 ################global predictions across days##############
