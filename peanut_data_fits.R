@@ -13,7 +13,7 @@ d$sex_index <- d$male + 1
 d$age_index <- d$adult + 1
 d$group_index <- as.integer(d$group)
 
-load("/Users/BJB/Downloads/vervet_peanut_ewa_global_20min_24April2020.rdata")##if working with existing workspace
+load("/Users/BJB/Downloads/vervet_peanut_ewa_20min_13May2020.rdata")##if working with existing workspace
 
 datalist_i <- list(
   N = nrow(d),                                  #length of dataset
@@ -118,131 +118,7 @@ precis(fit_global, depth=3 , pars=c('Rho_g' ) )
 ########info criteria#########
 WAICtab <- compare(fit_i, fit_freq, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
 
-##############################
-#######plot main effects######
-#############################
-post <- extract(fit_global)
 
-plambda <- list(
-  lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
-  lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
-  lambda_juv = exp(post$A[,1,1] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
-  lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
-)
-plot(precis(plambda , depth=2) )
-precis(plambda)
-
-plogits <- list(
-  phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )), 
-  phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )), 
-  phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
-  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
-  gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
-  gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
-  gamma_juv = logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
-  gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
-)
-plot(precis(plogits , depth=2) )
-precis(plogits)
-
-
-pfc <- list(
-  fc_female = exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-  fc_male = exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-  fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-  fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
-  # fc_Kubu= exp( post$G[,1,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )),
-  # fc_Noha= exp( post$G[,2,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
-)
-
-plot(precis(pfc , depth=2) )
-precis(pfc)
-
-pbeta <- list(
-  beta_fem_female = post$S[,5,1] + apply(post$A[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
-  beta_fem_male = post$S[,5,2] + apply(post$A[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
-  beta_fem_juv = post$A[,5,1] + apply(post$S[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
-  beta_fem_adult = post$A[,5,2] + apply(post$S[,5,] + post$G[,,5] , 1 , mean) + apply( post$I[,,5], 1 ,mean ) ,
-  beta_kin_female = post$S[,6,1] + apply(post$A[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
-  beta_kin_male = post$S[,6,2] + apply(post$A[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
-  beta_kin_juv = post$A[,6,1] + apply(post$S[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
-  beta_kin_adult = post$A[,6,2] + apply(post$S[,6,] + post$G[,,6] , 1 , mean) + apply( post$I[,,6], 1 ,mean ) ,
-  beta_pay_female = post$S[,7,1] + apply(post$A[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
-  beta_pay_male = post$S[,7,2] + apply(post$A[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
-  beta_pay_juv = post$A[,7,1] + apply(post$S[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
-  beta_pay_adult = post$A[,7,2] + apply(post$S[,7,] + post$G[,,7] , 1 , mean) + apply( post$I[,,7], 1 ,mean ) ,
-  beta_rank_female = post$S[,8,1] + apply(post$A[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) ,
-  beta_rank_male = post$S[,8,2] + apply(post$A[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) ,
-  beta_rank_juv = post$A[,8,1] + apply(post$S[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) ,
-  beta_rank_adult = post$A[,8,2] + apply(post$S[,8,] + post$G[,,8] , 1 , mean) + apply( post$I[,,8], 1 ,mean ) , 
-  beta_sex_female = post$S[,9,1] + apply(post$A[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) ,
-  beta_sex_male = post$S[,9,2] + apply(post$A[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) ,
-  beta_sex_juv = post$A[,9,1] + apply(post$S[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) ,
-  beta_sex_adult = post$A[,9,2] + apply(post$S[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) 
-)
-
-plot(precis(pbeta , depth=2) )
-precis(pbeta)
-
-#################################################
-##########plots varying effects##################
-#################################################
-plot(precis(fit_global , pars='sigma' , depth=3))
-l4p <- unique(subset( d , select=c("sex_index" , "age_index" , "ID_actor_index" , "group_index" , "ID_actor")))
-
-lambda_list <- phi_list <- gamma_list <- fc_list <- beta_fem_list <- beta_kin_list <- beta_pay_list <- beta_rank_list <- beta_sex_list <-  as.list(as.data.frame(matrix(0, nrow=length(post$I[,1,1]) , ncol=nrow(l4p) + 2  )))
-
-
-for (i in 1:2){
-  lambda_list[[i]] = exp( post$G[,i,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
-  phi_list[[i]] = logistic( post$G[,i,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean) + apply( post$I[,,2], 1 ,mean ))
-  gamma_list[[i]] = logistic( post$G[,i,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean) + apply( post$I[,,3], 1 ,mean ))
-  fc_list[[i]] = exp( post$G[,i,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
-  beta_fem_list[[i]] = post$G[,i,5] + apply( post$A[,5,] + post$S[,5,] , 1 ,mean) + apply( post$I[,,5], 1 ,mean )
-  beta_kin_list[[i]] = post$G[,i,6] + apply( post$A[,6,] + post$S[,6,] , 1 ,mean) + apply( post$I[,,6], 1 ,mean )
-  beta_pay_list[[i]] = post$G[,i,7] + apply( post$A[,7,] + post$S[,7,] , 1 ,mean) + apply( post$I[,,7], 1 ,mean )
-  beta_rank_list[[i]] = post$G[,i,8] + apply( post$A[,8,] + post$S[,8,] , 1 ,mean) + apply( post$I[,,8], 1 ,mean )
-  beta_sex_list[[i]] = post$G[,i,9] + apply( post$A[,9,] + post$S[,9,] , 1 ,mean) + apply( post$I[,,9], 1 ,mean )
-}
-
-for (i in 1:34){
-  lambda_list[[i+2]] = exp( post$I[,l4p$ID_actor_index[i],1] + post$G[,l4p$group_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] )
-  phi_list[[i+2]] = logistic( post$I[,l4p$ID_actor_index[i],2] + post$G[,l4p$group_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) 
-  gamma_list[[i+2]] = logistic( post$I[,l4p$ID_actor_index[i],3] + post$G[,l4p$group_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) 
-  fc_list[[i+2]] = exp( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]]  + post$S[,4,l4p$sex_index[i]] )
-  beta_fem_list[[i+2]] = post$I[,l4p$ID_actor_index[i],5] + post$G[,l4p$group_index[i],5] + post$A[,5,l4p$age_index[i]] + post$S[,5,l4p$sex_index[i]] 
-  beta_kin_list[[i+2]] = post$I[,l4p$ID_actor_index[i],6] + post$G[,l4p$group_index[i],6] + post$A[,6,l4p$age_index[i]] + post$S[,6,l4p$sex_index[i]] 
-  beta_pay_list[[i+2]] = post$I[,l4p$ID_actor_index[i],7] + post$G[,l4p$group_index[i],7] + post$A[,7,l4p$age_index[i]] + post$S[,7,l4p$sex_index[i]] 
-  beta_rank_list[[i+2]] = post$I[,l4p$ID_actor_index[i],8] + post$G[,l4p$group_index[i],8] + post$A[,8,l4p$age_index[i]] + post$S[,8,l4p$sex_index[i]] 
-  beta_sex_list[[i+2]] = post$I[,l4p$ID_actor_index[i],9] + post$G[,l4p$group_index[i],9] + post$A[,9,l4p$age_index[i]] + post$S[,9,l4p$sex_index[i]] 
-}
-
-labels <- paste( "lambda" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(lambda_list) , labels=labels , xlim=c(0,60))
-
-labels <- paste( "phi" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(phi_list) , labels=labels )
-
-labels <- paste( "gamma" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(gamma_list), labels=labels)
-
-labels <- paste( "fc" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(fc_list) , labels=labels, xlim=c(0,20))
-
-labels <- paste( "beta_fem" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(beta_fem_list) ,labels=labels)
-
-labels <- paste( "beta_kin" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(beta_kin_list) ,labels=labels)
-
-labels <- paste( "beta_pay" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(beta_pay_list) ,labels=labels)
-
-labels <- paste( "beta_rank" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(beta_rank_list) ,labels=labels)
-
-labels <- paste( "beta_sex" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(beta_sex_list) ,labels=labels)
 
 # ##########individual-predictions#############
 # 
