@@ -21,9 +21,15 @@ plambda <- list(
 plot(precis(plambda , depth=2) )
 precis(plambda)
 
- the 
+plogits <- list(
+  phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+)
 plot(precis(plogits , depth=2) )
 precis(plogits)
+
 
 
 pfc <- list(
@@ -36,6 +42,7 @@ pfc <- list(
 )
 
 plot(precis(pfc , depth=2) )
+
 precis(pfc)
 
 pbeta <- list(
@@ -61,8 +68,17 @@ pbeta <- list(
   beta_sex_adult = post$A[,9,2] + apply(post$S[,9,] + post$G[,,9] , 1 , mean) + apply( post$I[,,9], 1 ,mean ) 
 )
 
+
 plot(precis(pbeta , depth=2) )
 precis(pbeta)
+
+biglist <- list(plambda, plogits , pfc, pbeta )
+biglist2tab <- precis(biglist , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
+write.csv(biglist2tab , file="globalparams.csv")
+sigmalist2tab <- precis(fit_global , pars=c("sigma_i" , "sigma_g") , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
+
+write.csv(sigmalist2tab , file="globalparamssigmas.csv")
+
 
 ##############################
 #######plot main effects noha only######
@@ -198,28 +214,32 @@ dhN <- dh[dh$group=="Noha",]
 dhN$date_index2 <- as.integer(as.factor(dhN$date_index))
 dhN<- droplevels(dhN)
 dhN<-dhN[order(dhN$date_index2),]#order by this index, dates will be ok
+dhN$ID_noha_index2 <- as.integer(as.factor(dhN$ID_noha_index))
 
 # #get column with max value
 # for (i in 1:nrow(dhN)){
 #   dhN$day_tech_max[i] <-which.max(dhN[i,8:10])
 # }
 # 
-# dhN$ID_noha_index2 <- as.integer(as.factor(dhN$ID_noha_index))
 # #transparency all 3 techs
 # plot( (dhN$date_index2-0.2) , (dhN$ID_noha_index2), col=col.pal[1], pch=21 , bg=col.alpha(col.pal[1], dhN$V1)  , xlab="Date" ,  xlim=c(0.5 , 11.5))
 # points(dhN$date_index2 ,dhN$ID_noha_index2, col=col.pal[2], pch=21 , bg=col.alpha(col.pal[2], dhN$V2) )
 # points( (dhN$date_index2 + 0.2) ,dhN$ID_noha_index2 , col=col.pal[3], pch=21 , bg=col.alpha(col.pal[3], dhN$V3) )
 
 #cex size all 3 techs, this seems the best
-plot( (dhN$date_index2-0.2) , (dhN$ID_noha_index2), col=col.pal[1]   , pch=19  , cex=2*dhN$V1 , ylab="" , xlab="" , xlim=c(-0.5 , 11.5),  xaxt='n' , yaxt='n' , ylim=c(1, 26))
-points(dhN$date_index2 ,dhN$ID_noha_index2, col=col.pal[2] , pch=19 , cex=2*dhN$V2 )
-points( (dhN$date_index2 + 0.2) ,dhN$ID_noha_index2 , col=col.pal[3]  , pch=19  , cex=2*dhN$V3)
-axis(1 , at=seq(1:max(dhN$date_index2)) , labels=as.vector(unique(dhN$Date)) , cex.axis=0.75 , tick=FALSE)
-axis(2 , at=seq(1:length(unique(dhN$ID_noha_index2))) , labels=as.vector(sort(unique(dhN$ID_actor))) , cex.axis=0.75 , las=1 , tick=FALSE , gap.axis=.01)
-title(ylab="ID", line=1.75)
-title(xlab="Date", line=1.5)
+
+pdf("Noha_heatplot.pdf" , width=7 , height=5)
+par( mar=c(3,3,1,1) , mgp=c(0,0.1,0.1))
+plot( (dhN$date_index2-0.2) , (dhN$ID_noha_index2), col=col.pal[1]   , pch=19  , cex=1.9*dhN$V1 , ylab="" , xlab="" , xlim=c(0.75 , 11.25),  xaxt='n' , yaxt='n' , ylim=c(1, 26))
+points(dhN$date_index2 ,dhN$ID_noha_index2, col=col.pal[2] , pch=19 , cex=1.9*dhN$V2 )
+points( (dhN$date_index2 + 0.2) ,dhN$ID_noha_index2 , col=col.pal[3]  , pch=19  , cex=1.9*dhN$V3)
+axis(1 , at=seq(1:max(dhN$date_index2)) , labels=as.vector(unique(dhN$Date)) , cex.axis=0.6 , tick=FALSE)
+axis(2 , at=seq(1:length(unique(dhN$ID_noha_index2))) , labels=as.vector(sort(unique(dhN$ID_actor))) , cex.axis=0.6 , las=1 , tick=FALSE , gap.axis=.01)
+title(ylab="ID", line=2)
+title(xlab="Date (dd.mm.yy)", line=2)
 legend("topleft", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=0.8,bty = "n" )
 
+dev.off()
 #cex size all 3 techs
 # plot( dhN$date_index2 , dhN$ID_noha_index, col=col.pal[dhN$day_tech_max]   , pch=19  , ylab="Individual id" , xlab="date" , xlim=c(0.5 , 11.5) )
 
@@ -272,20 +292,27 @@ col.pal=brewer.pal(3,"Accent")
 
 d$seq <- 1:nrow(d) #for graphing
 
-pdf("individual_peanut_vervet_preds_ci.pdf",width=8.5,height=11)
-par( mfrow=c(8, 1) , mar=c(3,3,3,1) , oma=c(4,4,.5,.5) )
+pdf("individual_peanut_vervet_preds_ci.pdf",width=11,height=8.5)
+par( mfrow=c(12, 3) , mar=c(0.1,0.1,1,0.1)+0.1 , oma=c(3,3,0,0)+0.02 )
 par(cex = 0.5)
 par(tcl = -0.2)
 par(mgp = c(2, 0.6, 0))
-plot.new()
-legend("top", inset=0.1, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=2,bty = "n" )
-legend("bottom", inset=0.1, c("failure","success") , pch=c(1,19), horiz=TRUE,cex=2,bty = "n")
 
 for(i in 1:max(d$ID_actor_index)){
-  plot( x1 ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1.15) , ylab="prob using technique" , xlab="foraging bout",  main=unique(d$ID_actor[d$ID_actor_index==i]) , type='l'  )
-  lines(x1 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=3)
-  lines(x2 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=3)
-  lines(x3 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=3)
+
+  plot( x1 ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1.15) , ylab="" , xlab="", type='l' , yaxt='n' , xaxt='n' )
+
+  
+  lines(x1 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1)
+  lines(x2 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1)
+  lines(x3 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1)
+  axis(2 , at=seq(from=0 , to=1 , by=0.2) , cex.axis=0.5  , tick=TRUE , gap.axis=.01 , labels=FALSE)   
+  axis(1 , at=seq(from=min(d$forg_bout[d$ID_actor_index==i] ) , to=max(d$forg_bout[d$ID_actor_index==i] ) , by=10) , cex.axis=0.5  , tick=TRUE , gap.axis=0.3 , labels=FALSE)
+  
+#   if(is.integer( (i-1)/3 )==TRUE){
+#     axis(2 , at=seq(from=0 , to=1 , by=0.2) , cex.axis=0.5  , tick=TRUE  , labels=TRUE)
+# }
+  
   #CI plots
   rr <- range(d$seq[d$ID_actor_index==i])
   ff <- range(d$forg_bout[d$ID_actor_index==i])
@@ -296,21 +323,38 @@ for(i in 1:max(d$ID_actor_index)){
   }
   #raw data
   nobsi <- nrow(d[d$ID_actor_index==i,])
-  points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]]) #empty circels are failure, filled are successes
+  points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]] , cex=0.25 , lwd=0.2) #empty circels are failure, filled are successes
   abline(h=1)
   
   dstmp <- d$date_index[d$ID_actor_index==i]
   dstmp_lab <- d$Date[d$ID_actor_index==i]
   dstmp_i <- c(1,1+which(diff(dstmp)!=0)) #gives cutpoints of changes (to append dated)
-  abline(v=(dstmp_i-0.5) , col="grey")
-  text(x=(dstmp_i-0.5) , y=rep(1.2 , length(dstmp_i)) , labels=dstmp_lab[dstmp_i] , cex=0.5 , pos=3 , srt=20 , adj=0.5 , xpd=NA)
+  abline(v=(dstmp_i-0.5) , col="grey" , lw=0.5)
+  text(x=(dstmp_i-0.5) , y=rep(1.15 , length(dstmp_i)) , labels=dstmp_lab[dstmp_i] , cex=0.25 , pos=3 , srt=20 , adj=0.5 , xpd=NA)
+  
+  mtext(unique(d$ID_actor[d$ID_actor_index==i]), side = 3, line = -1.7, adj = 0.005, cex = .36) 
+  mtext(unique(d$group[d$ID_actor_index==i]), side = 3, line = -2, adj = 0.005, cex = .18) 
+  
   
 }
+plot.new()
+plot.new()
+legend("left", inset=0.1, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=1.4,bty = "n" )
+legend("right", inset=0.1, c("failure","success") , pch=c(1,19), horiz=TRUE,cex=1.4,bty = "n")
+
+mtext("foraging bout", side = 1, line = 1, cex = 1.2, outer=TRUE) 
+mtext("probability of choosing technique", side = 2, line = 1, cex = 1.2 , outer=TRUE) 
 
 dev.off()
 
-#############comparison of multipl model predictions#############3
-#payoff model
+
+#plot of individual subset for main figure
+
+#############comparison of multipl model predictions#############
+#assume above code has been run
+
+####payoff model
+
 post.pay  <- extract(fit_pay)
 preds.pay<-post.pay$PrPreds
 str(post.pay$PrPreds)
@@ -322,15 +366,16 @@ m1 <- apply( x1 , 2 ,mean)
 m2 <- apply( x2 , 2 ,mean)
 m3 <- apply( x3 , 2 ,mean)
 
-# ci1 <- apply( x1 , 2 ,HPDI)
-# ci2 <- apply( x2 , 2 ,HPDI)
-# ci3 <- apply( x3 , 2 ,HPDI)
+ci1.pay <- apply( x1 , 2 ,HPDI)
+ci2.pay <- apply( x2 , 2 ,HPDI)
+ci3.pay <- apply( x3 , 2 ,HPDI)
+
 
 d$x1.pay <- m1
 d$x2.pay <- m2
 d$x3.pay <- m3
 
-#rank model
+#####rank model
 post.rank  <- extract(fit_rank)
 preds.rank<-post.rank$PrPreds
 str(post.pay$PrPreds)
@@ -342,15 +387,15 @@ m1 <- apply( x1 , 2 ,mean)
 m2 <- apply( x2 , 2 ,mean)
 m3 <- apply( x3 , 2 ,mean)
 
-# ci1 <- apply( x1 , 2 ,HPDI)
-# ci2 <- apply( x2 , 2 ,HPDI)
-# ci3 <- apply( x3 , 2 ,HPDI)
+ci1.rank <- apply( x1 , 2 ,HPDI)
+ci2.rank <- apply( x2 , 2 ,HPDI)
+ci3.rank <- apply( x3 , 2 ,HPDI)
 
 d$x1.rank <- m1
 d$x2.rank <- m2
 d$x3.rank <- m3
 
-#freq-dep
+####freq-dep
 post.freq  <- extract(fit_freq)
 preds.freq <- post.freq$PrPreds
 str(post.freq$PrPreds)
@@ -365,6 +410,90 @@ m3 <- apply( x3 , 2 ,mean)
 d$x1.freq <- m1
 d$x2.freq <- m2
 d$x3.freq <- m3
+
+ci1.freq <- apply( x1 , 2 ,HPDI)
+ci2.freq <- apply( x2 , 2 ,HPDI)
+ci3.freq <- apply( x3 , 2 ,HPDI)
+
+###kin-bias
+post.kin  <- extract(fit_kin)
+preds.kin <- post.kin$PrPreds
+str(post.kin$PrPreds)
+x1 <- post.kin$PrPreds[,,1]
+x2 <- post.kin$PrPreds[,,2]
+x3 <- post.kin$PrPreds[,,3]
+
+m1 <- apply( x1 , 2 ,mean)
+m2 <- apply( x2 , 2 ,mean)
+m3 <- apply( x3 , 2 ,mean)
+
+d$x1.kin <- m1
+d$x2.kin <- m2
+d$x3.kin <- m3
+
+ci1.kin <- apply( x1 , 2 ,HPDI)
+ci2.kin <- apply( x2 , 2 ,HPDI)
+ci3.kin <- apply( x3 , 2 ,HPDI)
+
+###same sex bias
+post.sex  <- extract(fit_sex)
+preds.sex <- post.sex$PrPreds
+str(post.sex$PrPreds)
+x1 <- post.sex$PrPreds[,,1]
+x2 <- post.sex$PrPreds[,,2]
+x3 <- post.sex$PrPreds[,,3]
+
+m1 <- apply( x1 , 2 ,mean)
+m2 <- apply( x2 , 2 ,mean)
+m3 <- apply( x3 , 2 ,mean)
+
+d$x1.sex <- m1
+d$x2.sex <- m2
+d$x3.sex <- m3
+
+ci1.sex <- apply( x1 , 2 ,HPDI)
+ci2.sex <- apply( x2 , 2 ,HPDI)
+ci3.sex <- apply( x3 , 2 ,HPDI)
+
+###female-bias
+post.fem  <- extract(fit_fem)
+preds.fem <- post.fem$PrPreds
+str(post.fem$PrPreds)
+x1 <- post.fem$PrPreds[,,1]
+x2 <- post.fem$PrPreds[,,2]
+x3 <- post.fem$PrPreds[,,3]
+
+m1 <- apply( x1 , 2 ,mean)
+m2 <- apply( x2 , 2 ,mean)
+m3 <- apply( x3 , 2 ,mean)
+
+d$x1.fem <- m1
+d$x2.fem <- m2
+d$x3.fem <- m3
+
+ci1.fem <- apply( x1 , 2 ,HPDI)
+ci2.fem <- apply( x2 , 2 ,HPDI)
+ci3.fem <- apply( x3 , 2 ,HPDI)
+
+###IL
+post.i <- extract(fit_i)
+preds.i <- post.i$PrPreds
+str(post.i$PrPreds)
+x1 <- post.i$PrPreds[,,1]
+x2 <- post.i$PrPreds[,,2]
+x3 <- post.i$PrPreds[,,3]
+
+m1 <- apply( x1 , 2 ,mean)
+m2 <- apply( x2 , 2 ,mean)
+m3 <- apply( x3 , 2 ,mean)
+
+d$x1.i <- m1
+d$x2.i <- m2
+d$x3.i <- m3
+
+ci1.i <- apply( x1 , 2 ,HPDI)
+ci2.i <- apply( x2 , 2 ,HPDI)
+ci3.i <- apply( x3 , 2 ,HPDI)
 
 ######plots
 for(i in 1:max(d$ID_actor_index)){
@@ -381,20 +510,94 @@ for(i in 1:max(d$ID_actor_index)){
   lines(x1.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=4)
   lines(x2.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=4)
   lines(x3.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=4)
+  lines(x1.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=5)
+  lines(x2.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=5)
+  lines(x3.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=5)
+  
 
   #raw data
   nobsi <- nrow(d[d$ID_actor_index==i,])
   points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]]) #empty circels are failure, filled are successes
   abline(h=1)
   
-  dstmp <- d$date_index[d$ID_actor_index==i]
-  dstmp_lab <- d$Date[d$ID_actor_index==i]
-  dstmp_i <- c(1,1+which(diff(dstmp)!=0)) #gives cutpoints of changes (to append dated)
-  abline(v=(dstmp_i-0.5) , col="grey")
-  text(x=(dstmp_i-0.5) , y=rep(1.2 , length(dstmp_i)) , labels=dstmp_lab[dstmp_i] , cex=0.5 , pos=3 , srt=20 , adj=0.5 , xpd=NA)
+  # dstmp <- d$date_index[d$ID_actor_index==i]
+  # dstmp_lab <- d$Date[d$ID_actor_index==i]
+  # dstmp_i <- c(1,1+which(diff(dstmp)!=0)) #gives cutpoints of changes (to append dated)
+  # abline(v=(dstmp_i-0.5) , col="grey")
+  # text(x=(dstmp_i-0.5) , y=rep(1.2 , length(dstmp_i)) , labels=dstmp_lab[dstmp_i] , cex=0.5 , pos=3 , srt=20 , adj=0.5 , xpd=NA)
   
 }
 
+
+######multipanel plots#####
+
+par(mfrow=c(4,1) , mar=c(0,0,0,0) +.1)
+#for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
+  for(i in 1: max(d$ID_actor_index)){
+    
+ 
+  plot( x1 ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1.15) , ylab="" , xlab="" , type='l' , main=min(d$ID_actor_index[d$ID_actor_index==i]) )
+  lines(x1 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1)
+  lines(x2 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1)
+  lines(x3 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1)
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+    shade(ci1[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+    shade(ci2[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+    shade(ci3[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+  
+  #raw data
+  nobsi <- nrow(d[d$ID_actor_index==i,])
+  points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]]) #empty circels are failure, filled are successes
+  abline(h=1)
+  
+  
+  plot( x1.pay ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout" , type='l'  )
+  lines(x1.pay ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
+  lines(x2.pay ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
+  lines(x3.pay ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+    shade(ci1.pay[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+    shade(ci2.pay[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+    shade(ci3.pay[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+
+plot( x1.freq ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l'  )
+  lines(x1.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
+  lines(x2.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
+  lines(x3.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+    shade(ci1.freq[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+    shade(ci2.freq[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+    shade(ci3.freq[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+  
+  
+plot( x1.i ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l'  )
+  lines(x1.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
+  lines(x2.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
+  lines(x3.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+    shade(ci1.i[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+    shade(ci2.i[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+    shade(ci3.i[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+  
+}
+
+str(d)
 ######################################################################
 ################global predictions across days per group##############
 ######################################################################
@@ -428,38 +631,40 @@ dgNoha <- dg2[dg2$group=="Noha",]
 dgKubu <- dg2[dg2$group=="Kubu",]
 
 ##group level plots for noha
-plot(dgNoha$V1~seq(1:length(dgNoha$Date)) , col=col.pal[1] , pch=1 , ylim=c(0,1.1) , xlim=c(1,11) , ylab="freq of behavior in group" , xlab="experimental day" , cex=3*dgNoha$nobs_group_all/max(dgNoha$nobs_group_all) , main="Noha" , xaxt='n') 
-lines(dgNoha$V1~seq(1:length(dgNoha$Date)) , col=col.pal[1] , type="l" , lty=3)
+pdf("noha_preds_gegen_rawdata.pdf",width=8,height=5)
+par(mar=c(4,4,1,1))
+plot(dgNoha$V1~seq(1:length(dgNoha$Date)) , col=col.pal[1] , pch=1 , ylim=c(0,1.1) , xlim=c(1,11) , ylab="frequency of behavior in group" , xlab="experimental day" , cex=3*dgNoha$nobs_group_all/max(dgNoha$nobs_group_all) , main="" , xaxt='n') 
+lines(dgNoha$V1~seq(1:length(dgNoha$Date)) , col=col.pal[1] , type="l" , lty=3, lw=2)
 points(dgNoha$V2~seq(1:length(dgNoha$Date)) , col=col.pal[2] , pch=1 , cex=3*dgNoha$nobs_group_all/max(dgNoha$nobs_group_all))
-lines(dgNoha$V2~seq(1:length(dgNoha$Date)) , col=col.pal[2] , type="l" , lty=3)
+lines(dgNoha$V2~seq(1:length(dgNoha$Date)) , col=col.pal[2] , type="l" , lty=3, lw=2)
 points(dgNoha$V3~seq(1:length(dgNoha$Date)) , col=col.pal[3] , pch=1 , cex=3*dgNoha$nobs_group_all/max(dgNoha$nobs_group_all))
-lines(dgNoha$V3~seq(1:length(dgNoha$Date)) , col=col.pal[3] , type="l" , lty=3)
+lines(dgNoha$V3~seq(1:length(dgNoha$Date)) , col=col.pal[3] , type="l" , lty=3, lw=2)
 points(dgNoha$V4~seq(1:length(dgNoha$Date)) , col=col.pal[1] , pch=19 )
-lines(dgNoha$V4~seq(1:length(dgNoha$Date)) , col=col.pal[1] , type="l")
+lines(dgNoha$V4~seq(1:length(dgNoha$Date)) , col=col.pal[1] , type="l", lw=2)
 points(dgNoha$V5~seq(1:length(dgNoha$Date)) , col=col.pal[2] , pch=19 )
-lines(dgNoha$V5~seq(1:length(dgNoha$Date)) , col=col.pal[2] , type="l")
+lines(dgNoha$V5~seq(1:length(dgNoha$Date)) , col=col.pal[2] , type="l", lw=2)
 points(dgNoha$V6~seq(1:length(dgNoha$Date)) , col=col.pal[3] , pch=19 )
-lines(dgNoha$V6~seq(1:length(dgNoha$Date)) , col=col.pal[3] , type="l")
+lines(dgNoha$V6~seq(1:length(dgNoha$Date)) , col=col.pal[3] , type="l", lw=2)
 legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex=1 , pch=19 , horiz=TRUE )
-legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE)
+legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE, lw=2)
 axis(1 , at=seq(1:length(dgNoha$Date)) , labels=dgNoha$Date , cex.axis=0.75)
-
+dev.off()
 
 ##group level plots for Kubu
 plot(dgKubu$V1~seq(1:length(dgKubu$Date)) , col=col.pal[1] , pch=1 , ylim=c(0,1.1) , xlim=c(1,7) , ylab="freq of behavior in group" , xlab="experimental day" , cex=3*dgKubu$nobs_group_all/max(dgKubu$nobs_group_all) , main="Kubu" , xaxt='n') 
-lines(dgKubu$V1~seq(1:length(dgKubu$Date)) , col=col.pal[1] , type="l" , lty=3)
+lines(dgKubu$V1~seq(1:length(dgKubu$Date)) , col=col.pal[1] , type="l" , lty=3 , lw=2)
 points(dgKubu$V2~seq(1:length(dgKubu$Date)) , col=col.pal[2] , pch=1 , cex=3*dgKubu$nobs_group_all/max(dgKubu$nobs_group_all))
-lines(dgKubu$V2~seq(1:length(dgKubu$Date)) , col=col.pal[2] , type="l" , lty=3)
+lines(dgKubu$V2~seq(1:length(dgKubu$Date)) , col=col.pal[2] , type="l" , lty=3, lw=2)
 points(dgKubu$V3~seq(1:length(dgKubu$Date)) , col=col.pal[3] , pch=1 , cex=3*dgKubu$nobs_group_all/max(dgKubu$nobs_group_all))
-lines(dgKubu$V3~seq(1:length(dgKubu$Date)) , col=col.pal[3] , type="l" , lty=3)
+lines(dgKubu$V3~seq(1:length(dgKubu$Date)) , col=col.pal[3] , type="l" , lty=3, lw=2)
 points(dgKubu$V4~seq(1:length(dgKubu$Date)) , col=col.pal[1] , pch=19 )
-lines(dgKubu$V4~seq(1:length(dgKubu$Date)) , col=col.pal[1] , type="l")
+lines(dgKubu$V4~seq(1:length(dgKubu$Date)) , col=col.pal[1] , type="l", lw=2)
 points(dgKubu$V5~seq(1:length(dgKubu$Date)) , col=col.pal[2] , pch=19 )
-lines(dgKubu$V5~seq(1:length(dgKubu$Date)) , col=col.pal[2] , type="l")
+lines(dgKubu$V5~seq(1:length(dgKubu$Date)) , col=col.pal[2] , type="l", lw=2)
 points(dgKubu$V6~seq(1:length(dgKubu$Date)) , col=col.pal[3] , pch=19 )
-lines(dgKubu$V6~seq(1:length(dgKubu$Date)) , col=col.pal[3] , type="l")
+lines(dgKubu$V6~seq(1:length(dgKubu$Date)) , col=col.pal[3] , type="l", lw=2)
 legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex=1 , pch=19 , horiz=TRUE )
-legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE)
+legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE lw=2)
 axis(1 , at=seq(1:length(dgKubu$Date)) , labels=dgKubu$Date , cex.axis=0.75)
 
 ####################################
@@ -767,7 +972,7 @@ gamma_plots(fit_global,extract=FALSE)
 kappa_global_plots(fit_global, extract=FALSE)
 
 ######get descriptive stats of techniques
-ddesc <- aggregate(cbind( d$y1 , d$y2 , d$y3 ) , list( group=d$group) , mean ) #gets neat summary table for plot
+ddesc <- aggregate(cbind( d$y1 , d$y2 , d$y3 ) , list( group=d$group) , mean ) #gets neat summary table for plot, calculations used in text
 
 ddesc2 <- aggregate(cbind( d$y1 , d$y2 , d$y3 ) , list( group=d$group , date_index=d$date_index, Date=d$Date , nobs_group_ch=d$nobs_group_ch , nobs_group_cms=d$nobs_group_cms , nobs_group_cmt=d$nobs_group_cmt , nobs_group_all=d$nobs_group_all ) , mean )
 
@@ -786,7 +991,28 @@ lines(p3 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=c
 legend("topleft", inset=-.01, c("prob. technique succesful","freq. technique in population") , horiz=TRUE , cex=1,bty = "n" , lty=c(1,3) , lw=2 ) 
 legend("topright", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=1,bty = "n" )
 
+plot(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col="white" , xlab="experimental date" , ylab="prob technique is succesful")
+lines(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lw=2)
+lines(V2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lw=2)
+lines(V3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3], lw=2)
+lines(p1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lty=2 , lw=2)
+lines(p2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lty=2 , lw=2)
+lines(p3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3], lty=2 , lw=2)
+legend("topleft", inset=-.01, c("prob. technique succesful","freq. technique in population") , horiz=TRUE , cex=1,bty = "n" , lty=c(1,3) , lw=2 ) 
+legend("topright", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=1,bty = "n" )
+
 
 # lines(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lty=2)
 # lines(V2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lty=2)
 # lines(V3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3] , lty=2)
+
+#sumamry stats of groups
+length(unique(d$ID_actor[d$group=="Kubu"]))
+length(unique(d$ID_actor[d$group=="Noha"]))
+nrow(d[d$group=="Kubu",])
+nrow(d[d$group=="Noha",])
+range(d$peanut_bout)
+##export WAICtab
+write.csv(WAICtab , file="WAICtab_20days.csv")
+
+precis(fit_global)
