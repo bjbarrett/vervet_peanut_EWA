@@ -4,6 +4,10 @@ library(RColorBrewer)
 
 load("/Users/BJB/Downloads/vervet_peanut_ewa_20min_13May2020.rdata")##if working with existing workspace
 post <- extract(fit_global)
+
+sigmas <- precis(fit_global , pars=c("sigma_i" , "sigma_g" ) , depth=3 , hist=FALSE)
+plot(sigmas)
+
 ########################################################
 ###############Dot Plots Main Effects All Groups#######
 #######################################################
@@ -11,6 +15,7 @@ post <- extract(fit_global)
 ##############################
 #######plot main effects######
 #############################
+
 plambda <- list(
   lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
   lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
@@ -18,6 +23,7 @@ plambda <- list(
   lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
 )
 plot(precis(plambda , depth=2) )
+precis(plambda)
 precis(plambda)
 
 plogits <- list(
@@ -150,63 +156,113 @@ write.csv(sigmalist2tab , file="globalparamssigmas.csv")
 #################################################
 ##########dotplots varying effects##################
 #################################################
-plot(precis(fit_global , pars='sigma' , depth=3))
+plot(precis(fit_global , pars='sigma_i' , depth=3))
 
 l4p <- unique(subset( d , select=c("sex_index" , "age_index" , "ID_actor_index" , "group_index" , "ID_actor")))
 
-lambda_list <- phi_list <- gamma_list <- fc_list <- beta_fem_list <- beta_kin_list <- beta_pay_list <- beta_rank_list <- beta_sex_list <-  as.list(as.data.frame(matrix(0, nrow=length(post$I[,1,1]) , ncol=nrow(l4p) + 2  )))
+lambda_list <- phi_list <- gamma_list <- fc_list <- beta_fem_list <- beta_kin_list <- beta_pay_list <- beta_rank_list <- beta_sex_list <-  as.list(as.data.frame(matrix(0, nrow=length(post$I[,1,1]) , ncol=nrow(l4p) + 6  )))
+str(lambda_list)
+for(i in 1:4){ lambda_list[[i]] <- plambda[[i]]}
+for(i in 1:4){ phi_list[[i]] <- plogits[[i]] }
+for(i in 1:4){ gamma_list[[i]] <- plogits[[i+4]] }
+for(i in 1:4){ fc_list[[i]] <- pfc[[i]] }
+for(i in 1:4){ beta_fem_list[[i]] <- pbeta[[i]] }
+for(i in 1:4){ beta_kin_list[[i]] <- pbeta[[4+i]] }
+for(i in 1:4){ beta_pay_list[[i]] <- pbeta[[8+i]] }
+for(i in 1:4){ beta_rank_list[[i]] <- pbeta[[12+i]] }
+for(i in 1:4){ beta_sex_list[[i]] <- pbeta[[16+i]] }
 
 
 for (i in 1:2){
-  lambda_list[[i]] = exp( post$G[,i,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
-  phi_list[[i]] = logistic( post$G[,i,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean) + apply( post$I[,,2], 1 ,mean ))
-  gamma_list[[i]] = logistic( post$G[,i,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean) + apply( post$I[,,3], 1 ,mean ))
-  fc_list[[i]] = exp( post$G[,i,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
-  beta_fem_list[[i]] = post$G[,i,5] + apply( post$A[,5,] + post$S[,5,] , 1 ,mean) + apply( post$I[,,5], 1 ,mean )
-  beta_kin_list[[i]] = post$G[,i,6] + apply( post$A[,6,] + post$S[,6,] , 1 ,mean) + apply( post$I[,,6], 1 ,mean )
-  beta_pay_list[[i]] = post$G[,i,7] + apply( post$A[,7,] + post$S[,7,] , 1 ,mean) + apply( post$I[,,7], 1 ,mean )
-  beta_rank_list[[i]] = post$G[,i,8] + apply( post$A[,8,] + post$S[,8,] , 1 ,mean) + apply( post$I[,,8], 1 ,mean )
-  beta_sex_list[[i]] = post$G[,i,9] + apply( post$A[,9,] + post$S[,9,] , 1 ,mean) + apply( post$I[,,9], 1 ,mean )
+  lambda_list[[i+4]] = exp( post$G[,i,1] + apply( post$A[,1,] + post$S[,1,] , 1 ,mean) + apply( post$I[,,1], 1 ,mean ))
+  phi_list[[i+4]] = logistic( post$G[,i,2] + apply( post$A[,2,] + post$S[,2,] , 1 ,mean) + apply( post$I[,,2], 1 ,mean ))
+  gamma_list[[i+4]] = logistic( post$G[,i,3] + apply( post$A[,3,] + post$S[,3,] , 1 ,mean) + apply( post$I[,,3], 1 ,mean ))
+  fc_list[[i+4]] = exp( post$G[,i,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
+  beta_fem_list[[i+4]] = post$G[,i,5] + apply( post$A[,5,] + post$S[,5,] , 1 ,mean) + apply( post$I[,,5], 1 ,mean )
+  beta_kin_list[[i+4]] = post$G[,i,6] + apply( post$A[,6,] + post$S[,6,] , 1 ,mean) + apply( post$I[,,6], 1 ,mean )
+  beta_pay_list[[i+4]] = post$G[,i,7] + apply( post$A[,7,] + post$S[,7,] , 1 ,mean) + apply( post$I[,,7], 1 ,mean )
+  beta_rank_list[[i+4]] = post$G[,i,8] + apply( post$A[,8,] + post$S[,8,] , 1 ,mean) + apply( post$I[,,8], 1 ,mean )
+  beta_sex_list[[i+4]] = post$G[,i,9] + apply( post$A[,9,] + post$S[,9,] , 1 ,mean) + apply( post$I[,,9], 1 ,mean )
 }
 
 for (i in 1:34){
-  lambda_list[[i+2]] = exp( post$I[,l4p$ID_actor_index[i],1] + post$G[,l4p$group_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] )
-  phi_list[[i+2]] = logistic( post$I[,l4p$ID_actor_index[i],2] + post$G[,l4p$group_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) 
-  gamma_list[[i+2]] = logistic( post$I[,l4p$ID_actor_index[i],3] + post$G[,l4p$group_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) 
-  fc_list[[i+2]] = exp( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]]  + post$S[,4,l4p$sex_index[i]] )
-  beta_fem_list[[i+2]] = post$I[,l4p$ID_actor_index[i],5] + post$G[,l4p$group_index[i],5] + post$A[,5,l4p$age_index[i]] + post$S[,5,l4p$sex_index[i]] 
-  beta_kin_list[[i+2]] = post$I[,l4p$ID_actor_index[i],6] + post$G[,l4p$group_index[i],6] + post$A[,6,l4p$age_index[i]] + post$S[,6,l4p$sex_index[i]] 
-  beta_pay_list[[i+2]] = post$I[,l4p$ID_actor_index[i],7] + post$G[,l4p$group_index[i],7] + post$A[,7,l4p$age_index[i]] + post$S[,7,l4p$sex_index[i]] 
-  beta_rank_list[[i+2]] = post$I[,l4p$ID_actor_index[i],8] + post$G[,l4p$group_index[i],8] + post$A[,8,l4p$age_index[i]] + post$S[,8,l4p$sex_index[i]] 
-  beta_sex_list[[i+2]] = post$I[,l4p$ID_actor_index[i],9] + post$G[,l4p$group_index[i],9] + post$A[,9,l4p$age_index[i]] + post$S[,9,l4p$sex_index[i]] 
+  lambda_list[[i+6]] = exp( post$I[,l4p$ID_actor_index[i],1] + post$G[,l4p$group_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] )
+  phi_list[[i+6]] = logistic( post$I[,l4p$ID_actor_index[i],2] + post$G[,l4p$group_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) 
+  gamma_list[[i+6]] = logistic( post$I[,l4p$ID_actor_index[i],3] + post$G[,l4p$group_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) 
+  fc_list[[i+6]] = exp( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]]  + post$S[,4,l4p$sex_index[i]] )
+  beta_fem_list[[i+6]] = post$I[,l4p$ID_actor_index[i],5] + post$G[,l4p$group_index[i],5] + post$A[,5,l4p$age_index[i]] + post$S[,5,l4p$sex_index[i]] 
+  beta_kin_list[[i+6]] = post$I[,l4p$ID_actor_index[i],6] + post$G[,l4p$group_index[i],6] + post$A[,6,l4p$age_index[i]] + post$S[,6,l4p$sex_index[i]] 
+  beta_pay_list[[i+6]] = post$I[,l4p$ID_actor_index[i],7] + post$G[,l4p$group_index[i],7] + post$A[,7,l4p$age_index[i]] + post$S[,7,l4p$sex_index[i]] 
+  beta_rank_list[[i+6]] = post$I[,l4p$ID_actor_index[i],8] + post$G[,l4p$group_index[i],8] + post$A[,8,l4p$age_index[i]] + post$S[,8,l4p$sex_index[i]] 
+  beta_sex_list[[i+6]] = post$I[,l4p$ID_actor_index[i],9] + post$G[,l4p$group_index[i],9] + post$A[,9,l4p$age_index[i]] + post$S[,9,l4p$sex_index[i]] 
 }
 
-labels <- paste( "lambda" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  )
+pdf("lambdadotplots.pdf" , width=7 , height=7)
+labels <- c( names(plambda) , paste( "lambda" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(lambda_list) , labels=labels , xlim=c(0,60))
+str(lambda_list)
+pp <- precis(lambda_list)
+colz <- c(4,4,4,4,11,11,rep(1, 34))
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "phi" , c( levels(d$group) , 1:34) , sep="_"  )
+pdf("phidotplots.pdf" , width=7 , height=7)
+labels <- c( names(plogits[1:4]) , paste( "phi" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(phi_list) , labels=labels )
+pp <- precis(phi_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "gamma" , c( levels(d$group) , 1:34) , sep="_"  )
+pdf("gammadotplots.pdf" , width=7 , height=7)
+labels <- c( names(plogits[5:8]) , paste( "gamma" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(gamma_list), labels=labels)
+pp <- precis(gamma_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "fc" , c( levels(d$group) , 1:34) , sep="_"  )
-plot(precis(fc_list) , labels=labels, xlim=c(0,20))
+pdf("fcdotplots.pdf" , width=7 , height=7)
+labels <- c( names(pfc) , paste( "fc" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
+plot(precis(fc_list) , labels=labels, xlim=c(0,15))
+abline(v=1 , col="red" , lty=3)
+pp <- precis(fc_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "beta_fem" , c( levels(d$group) , 1:34) , sep="_"  )
+pdf("beta_fem_dotplots.pdf" , width=7 , height=7)
+labels <- c( names(pbeta[1:4]) , paste( "beta_fem" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(beta_fem_list) ,labels=labels)
+pp <- precis(beta_fem_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "beta_kin" , c( levels(d$group) , 1:34) , sep="_"  )
+pdf("beta_kin_dotplots.pdf" , width=7 , height=7)
+labels <- c( names(pbeta[5:8]) , paste( "beta_kin" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(beta_kin_list) ,labels=labels)
+pp <- precis(beta_kin_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "beta_pay" , c( levels(d$group) , 1:34) , sep="_"  )
+pdf("beta_pay_dotplots.pdf" , width=7 , height=7)
+labels <- c( names(pbeta[9:12]) , paste( "beta_pay" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(beta_pay_list) ,labels=labels)
+pp <- precis(beta_pay_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "beta_rank" , c( levels(d$group) , 1:34) , sep="_"  )
+pdf("beta_rank_dotplots.pdf" , width=7 , height=7)
+labels <- c( names(pbeta[13:16]) , paste( "beta_rank" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(beta_rank_list) ,labels=labels)
+pp <- precis(beta_rank_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
 
-labels <- paste( "beta_sex" , c( levels(d$group) , 1:34) , sep="_"  )
+pdf("beta_sex_dotplots.pdf" , width=7 , height=7)
+labels <- c( names(pbeta[17:20]) , paste( "beta_sex" , c( levels(d$group) , levels(d$ID_actor) ) , sep="_"  ) )
 plot(precis(beta_sex_list) ,labels=labels)
+pp <- precis(beta_sex_list)
+points( pp[[1]] , 40:1  , col=colz , pch=19)
+dev.off()
+
 
 ###################
 ####heatplot#######
@@ -1295,6 +1351,12 @@ biglist2tab <- precis(biglist , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
 write.csv(biglist2tab , file="femparams.csv")
 
 sigmalist2tab <- precis(fit_global , pars=c("sigma_i" , "sigma_g") , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
+labels <- c("sigma_i_lambda" , "sigma_i_phi" , "sigma_i_gamma" , "sigma_i_fc" , "sigma_i_beta_fem" , "sigma_i_beta_kin" , "sigma_i_beta_pay" , "sigma_i_beta_rank" , "sigma_i_beta_sex" , "sigma_g_lambda" , "sigma_g_phi" , "sigma_g_gamma" , "sigma_g_fc" , "sigma_g_beta_fem" , "sigma_g_beta_kin" , "sigma_g_beta_pay" , "sigma_g_beta_rank" , "sigma_g_beta_sex")
+
+pdf("sigmadotplotsglobal.pdf" , width=7 , height=5)
+plot(sigmalist2tab , labels=labels)
+dev.off()
 
 write.csv(sigmalist2tab , file="globalparamssigmas.csv")
 
+str(post)
