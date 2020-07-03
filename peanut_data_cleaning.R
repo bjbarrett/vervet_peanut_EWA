@@ -138,7 +138,7 @@ for( nobs in 1:nrow(d) ){
       o_sex[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]==ILV$Sex[i] , 1 , 0) # if sex at observation is same as sex of audience member, give 1, otherwise NA
       #for NA colums when calculating means sum w/in category over sums across all categories
       o_fem[nobs,i,] <- 0 # this works in 1/0 cases when there arent all zeros
-      o_fem[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]=="F" , 1 , 0) #copy only females
+      o_fem[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]=="F" & d$adult[nobs]==1 , 1 , 0) #copy only females
       #o_kin[nobs,i,d$technique_index[nobs]] <- KinNoha[i, 1 + d$ID_actor_index[nobs]] #input r value
       o_kin[nobs,i,d$technique_index[nobs]] <- ifelse(ILV$group[i]=="Noha" , KinNoha[min(ILV$ID_noha_index[ILV$ID_all_index==i]), 1 + d$ID_noha_index[nobs]] , KinKubu[min(ILV$ID_kubu_index[ILV$ID_all_index==i]), 1 + d$ID_kubu_index[nobs]] )#input r value // this is crazy complicated, do an edge list in future
      }	
@@ -147,17 +147,9 @@ for( nobs in 1:nrow(d) ){
 beep(4)
 
 
-
-# o_sex[1:20,,2]
-# o_freq[1:20,,2]
-# o_pay[1:20,,2]
-# o_kin[1:20,,2]
-# o_kin[1:50,7,]
-
-
 #add social info into dataframe
 
-win_width <- 30*60 #social info memory window in seconds (num_min*60secs)
+win_width <- 5*60 #social info memory window in seconds (num_min*60secs)
 
 
 for (nobs in 1:nrow(d)){
@@ -206,5 +198,5 @@ d$y3 <- ifelse(d$succeed==1 & d$technique_index==3 , 1, 0)
 
 d <-d[with(d, order(ID_actor_index, forg_bout)),]
 
-write.csv(d,"Peanut_Vervet_30min.csv")
+write.csv(d,"Peanut_Vervet_5min.csv")
 
