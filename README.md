@@ -13,7 +13,7 @@
 
 6) ewa_individual.stan model is stan code for the reinforcement aka individual learning model
 
-7) ewa_global.stan model is stan code for the global log0linear additive model
+7) ewa_global.stan model is stan code for the global loglinear additive model
 
 8) peanut_data_fits.R is R code to fit stan models
 
