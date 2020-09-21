@@ -4,6 +4,7 @@ library(rethinking)
 ##if running on server
 options(mc.cores = parallel::detectCores())
 d <- read.csv("~/Peanut_Vervet_20min.csv")
+##set wd to where stan files are if trying to reproduce this analysis
 
 #################################
 ##########slope models###########
@@ -12,8 +13,6 @@ d <- read.csv("~/Peanut_Vervet_20min.csv")
 d$sex_index <- d$male + 1
 d$age_index <- d$adult + 1
 d$group_index <- as.integer(d$group)
-
-load("/Users/BJB/Downloads/vervet_peanut_ewa_20min_13May2020.rdata")##if working with existing workspace
 
 datalist_i <- list(
   N = nrow(d),                                  #length of dataset
@@ -118,31 +117,6 @@ precis(fit_global, depth=3 , pars=c('Rho_g' ) )
 ########info criteria#########
 WAICtab <- compare(fit_i, fit_freq, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
 
-
-
-# ##########individual-predictions#############
-# 
-# l4p <- unique(subset( d , select=c("sex_index" , "age_index" , "ID_actor_index" , "group_index")))
-# 
-# lambda_list <- phi_list <- gamma_list <- fc_list <- kappa_list <-  lambda_list_CI <- phi_list_CI <- gamma_list_CI <- fc_list_CI <- kappa_list_CI  <- rep(0,nrow(l4p))
-# for (i in 1:nrow(l4p)){
-#   lambda_list[i] = median(exp( post$I[,l4p$ID_actor_index[i],1] + post$G[,l4p$group_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] )) 
-#   phi_list[i] = median(logistic( post$I[,l4p$ID_actor_index[i],2] + post$G[,l4p$group_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) )
-#   gamma_list[i] = median(logistic( post$I[,l4p$ID_actor_index[i],3] + post$G[,l4p$group_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) )
-#   fc_list[i] = median(exp( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]]  + post$S[,4,l4p$sex_index[i]] )) 
-#   kappa_list[i] = median( post$I[,l4p$ID_actor_index[i],4] + post$G[,l4p$group_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] ) 
-#   
-#   # lambda_list_CI[i] = HPDI(exp( post$I[,l4p$ID_actor_index[i],1] + post$A[,1,l4p$age_index[i]] + post$S[,1,l4p$sex_index[i]] ) )
-#   # phi_list_CI[i] = HPDI(logistic( post$I[,l4p$ID_actor_index[i],2] + post$A[,2,l4p$age_index[i]] + post$S[,2,l4p$sex_index[i]] ) )
-#   # gamma_list_CI[i] = HPDI(logistic( post$I[,l4p$ID_actor_index[i],3] + post$A[,3,l4p$age_index[i]] + post$S[,3,l4p$sex_index[i]] ) )
-#   # fc_list_CI[i] = HPDI(exp( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] )) 
-#   # kappa_list_CI[i] = mean( post$I[,l4p$ID_actor_index[i],4] + post$A[,4,l4p$age_index[i]] + post$S[,4,l4p$sex_index[i]] ) 
-#   
-# }
-# phi_list
-# lambda_list
-# gamma_list
-# fc_list
 
 ##sigmas
 dens(post$sigma , main="sigmas" , xlim=c(0,6) , col="white" , ylim=c(0,2.5) )##phi
