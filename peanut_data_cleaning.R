@@ -1,9 +1,11 @@
-####Vervet Peanut Data EWA Anaylysis 
-####10 Experiments in 2 groups, each tesst session is 1-2 hours, opem diffusiom, every success and attempt recorded
+####Vervet Peanut Data EWA Anaylysis Data Cleaning Code
+####Brendan Barrett cleaning code, tidied up 21 Sept 2020
+####10 Experiments in 2 groups, each tesst session is 1-2 hours, open diffusion, every success and attempt recorded
 ####3 techniques: crack with mouth from side; crack with mouth from top; crack with hand
 ####Info on who manipulated and who attended
 ####Strategies to Analyze: 1_ Frequency dependence; 2_PayoffBias; 3) Rank Bias; 4) Kin Bias; 5) Sex Bias; 
 #### Interested in sex and age variation
+
 #### load packages + data
 rm(list = ls())
 require(lubridate)
@@ -24,19 +26,22 @@ length(unique(ILVNoha$ID_actor))
 length(unique(ILVKubu$ID_actor))
 length(unique(KinNoha$X))
 length(unique(KinKubu$X))
+
 # 44 individuals in both datasets in focal entry, 52 in ILV and Kin columns
 sort(unique(dnoha$ID_actor))
 sort(unique(ILVNoha$ID_actor))
 sort(unique(dkubu$ID_actor))
 sort(unique(ILVNoha$ID_actor))
+
 ##create master ILV sheet
-ILVKubu$ID_kubu_index <- as.integer(ILVKubu$ID_actor) #for kubu graphs
-ILVNoha$ID_noha_index <- as.integer(ILVNoha$ID_actor) #for noha graphs
+ILVKubu$ID_kubu_index <- as.integer(as.factor(ILVKubu$ID_actor)) #for kubu graphs
+ILVNoha$ID_noha_index <- as.integer(as.factor(ILVNoha$ID_actor)) #for noha graphs
 ILVKubu$group <- "Kubu"
 ILVNoha$group <- "Noha"
 ILV <- as.data.frame(smartbind(ILVKubu,ILVNoha))
 ILV$ID_actor <- as.character(ILV$ID_actor)
 ILV$ID_all_index <- as.integer(as.factor(ILV$ID_actor)) #index across all possible individuals, use for social info dataframe
+
 ##merge group data and merge ILV 
 dkubu$ID_Attending11 <- NA #add column so merge correctly
 d <- rbind(dkubu,dnoha)
@@ -57,9 +62,10 @@ d$obs_index <- seq(1:nrow(d)) #unique sequential value to each row after orderin
 d$succeed <- ifelse(d$Event=='sch'| d$Event=='scms' | d$Event=='scmt', 1 , 0) # column of 1/0 succeed for behavior
 d$technique <- sub(".", "", d$Event)   #trim 1st charachter 
 d$technique_index <- as.integer(as.factor(d$technique))  #technique index
-d$date_index <- as.integer(as.factor(date(d$timestamp)))
+d$date_index <- as.integer(as.factor(date(d$timestamp))) #date index
 
-# ##create dot plot huge
+# ##create dot plot huge was used for visualization, but not in paper
+
 # col_pal <- brewer.pal(n=3, name='Set2') #color pallette, but spelled right
 # 
 # pdf('noha_peanut_raw_dotplot.pdf' , width=150 , height = 10 )
@@ -128,18 +134,19 @@ for( nobs in 1:nrow(d) ){
            isTRUE(ILV[i,1]==d[nobs,"ID_Attending11"] ) #case difference in 10 and 11 not a mistake
            #don't use grepl if there are partial matches i.e. XIAN and XIA
          ){
+      
       o_freq[nobs,i,] <- 0 #assigns a 0 to all options if individual i is observing foraging bout nobs, ok for sums
       o_freq[nobs,i,d$technique_index[nobs]] <- 1 #assigns a 1 to observed option for individual i is observing foraging bout nobs
       o_pay[nobs,i,d$technique_index[nobs]] <- d$succeed[nobs] #adds a 1 to observations of a technique where a success was observed, 0 where failure with tecnique
+      
       #fix below when multiple groups in dataset to adjust max in both groups
       o_rank[nobs,i,d$technique_index[nobs]] <-  1/d$Rank[nobs] 
-      # o_rank[nobs,i,d$technique_index[nobs]] <- ( (length(unique(ILVNoha$ID_actor)) + 1 - d$Rank[nobs] ) ) /  length(unique(ILVNoha$ID_actor)) #assigns values to each actor--1 is highest individual, close to zero is no individual
       o_sex[nobs,i,] <- 0 # this works in 1/0 cases when there arent all zeros
       o_sex[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]==ILV$Sex[i] , 1 , 0) # if sex at observation is same as sex of audience member, give 1, otherwise NA
+      
       #for NA colums when calculating means sum w/in category over sums across all categories
       o_fem[nobs,i,] <- 0 # this works in 1/0 cases when there arent all zeros
       o_fem[nobs,i,d$technique_index[nobs]]  <- ifelse(d$Sex[nobs]=="F" & d$adult[nobs]==1 , 1 , 0) #copy only females
-      #o_kin[nobs,i,d$technique_index[nobs]] <- KinNoha[i, 1 + d$ID_actor_index[nobs]] #input r value
       o_kin[nobs,i,d$technique_index[nobs]] <- ifelse(ILV$group[i]=="Noha" , KinNoha[min(ILV$ID_noha_index[ILV$ID_all_index==i]), 1 + d$ID_noha_index[nobs]] , KinKubu[min(ILV$ID_kubu_index[ILV$ID_all_index==i]), 1 + d$ID_kubu_index[nobs]] )#input r value // this is crazy complicated, do an edge list in future
      }	
   }
@@ -149,11 +156,10 @@ beep(4)
 
 #add social info into dataframe
 
-win_width <- 5*60 #social info memory window in seconds (num_min*60secs)
+win_width <- 20*60 #social info memory window in seconds (num_min*60secs)
 
 
 for (nobs in 1:nrow(d)){
-  #zz<-min(d$obs_index[d$Date==d$Date[nobs]]) #starts on the same day and counts from there
   zz <- min(d$obs_index[as.numeric(as.duration(d$timestamp[nobs] - d$timestamp)) <= win_width ]) #what is minimal value or earliest observation that occured within the window width
 
   d$freq1[nobs] <- sum( o_freq[ zz : (d$obs_index[nobs] - 1) , d$ID_all_index[nobs] , 1 ] )
@@ -191,12 +197,12 @@ d$rank3[is.nan(d$rank3)] <- 0
 d$rank2[is.nan(d$rank2)] <- 0
 d$rank1[is.nan(d$rank1)] <- 0
 
-#create yield columns
+#create yield/observed payoff columns
 d$y1 <- ifelse(d$succeed==1 & d$technique_index==1 , 1, 0)
 d$y2 <- ifelse(d$succeed==1 & d$technique_index==2 , 1, 0)
 d$y3 <- ifelse(d$succeed==1 & d$technique_index==3 , 1, 0)
 
 d <-d[with(d, order(ID_actor_index, forg_bout)),]
 
-write.csv(d,"Peanut_Vervet_5min.csv")
+write.csv(d,"Peanut_Vervet_20min.csv")
 
