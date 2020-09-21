@@ -2,7 +2,9 @@ library(rethinking)
 library(RColorBrewer)
 #load("/Users/BJB/Downloads/20min_slopes_VervetPNUTindex.rdata")
 
-load("/Users/BJB/Downloads/vervet_peanut_ewa_20min_13May2020.rdata")##if working with existing workspace
+#load("/Users/BJB/Downloads/vervet_peanut_ewa_20min_13May2020.rdata")##if working with existing workspace
+load("~/Dropbox/Vervets/vervet_peanut_EWA/vervet_peanut_ewa_20min_8July2020.rdata")##if working with existing workspace
+
 post <- extract(fit_global)
 
 sigmas <- precis(fit_global , pars=c("sigma_i" , "sigma_g" ) , depth=3 , hist=FALSE)
@@ -410,7 +412,7 @@ dev.off()
 
 #plot of individual subset for main figure
 
-#############comparison of multipl model predictions#############
+#############comparison of multiple model predictions#############
 #assume above code has been run
 
 ####payoff model
@@ -734,18 +736,18 @@ mtext("probability of choosing technique", side = 2, line = .75, cex = 1 , outer
 
 dev.off()
 
-######individual plot for upps for paper
-pdf("multimodel_pred_comparisons_upps.pdf",width=8.5,height=11)
+######individual plot for guat for paper
+pdf("multimodel_pred_comparisons_gran.pdf",width=10,height=7)
 
-par(mfrow=c(8,1) , mar=c(0,2,0,0) +.1 , oma=c(3.5,2.5,0,0) +0.1)
-for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
+par(mfrow=c(5,1) , mar=c(0,2,0,0) +.1 , oma=c(3.5,2.5,0,0) +0.1)
+for(i in min(d$ID_actor_index[d$ID_actor=="Gran"])){
   #global
   plot( x1 ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1.15) , ylab="" , xlab="" , type='l', xaxt='n')
   lines(x1 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1)
   lines(x2 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1)
   lines(x3 ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1)
   #CI plots
-  text(-10,0.9, "a. Global" , cex=0.95,pos=4)
+  text(-2,0.9, "a. Global" , cex=1,pos=4)
   rr <- range(d$seq[d$ID_actor_index==i])
   ff <- range(d$forg_bout[d$ID_actor_index==i])
   if(diff(ff) > 0){
@@ -756,7 +758,7 @@ for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
   
   #raw data
   nobsi <- nrow(d[d$ID_actor_index==i,])
-  points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]] , cex=0.4 , lwd=0.7) #empty circels are failure, filled are successes
+  points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]] , cex=1.3 , lwd=0.7) #empty circels are failure, filled are successes
   abline(h=1)
   
   #payoff
@@ -764,7 +766,7 @@ for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
   lines(x1.pay ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
   lines(x2.pay ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
   lines(x3.pay ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-10,0.9, "b. Payoff-bias" , cex=0.95,pos=4)
+  text(-2,0.9, "b. Payoff-bias" , cex=1,pos=4)
   
   #CI plots
   rr <- range(d$seq[d$ID_actor_index==i])
@@ -780,7 +782,7 @@ for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
   lines(x1.rank ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
   lines(x2.rank ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
   lines(x3.rank ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-10,0.9, "c. Rank-bias" , cex=0.95,pos=4)
+  text(-2,0.9, "c. Rank-bias" , cex=1,pos=4)
   
   #CI plots
   rr <- range(d$seq[d$ID_actor_index==i])
@@ -796,7 +798,7 @@ for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
   lines(x1.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
   lines(x2.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
   lines(x3.freq ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-10,0.9, "d. Frequency-dependence" , cex=0.95 ,pos=4)
+  text(-2,0.9, "d. Frequency-dependence" , cex=1 ,pos=4)
   
   #CI plots
   rr <- range(d$seq[d$ID_actor_index==i])
@@ -806,60 +808,12 @@ for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
     shade(ci2.freq[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
     shade(ci3.freq[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
   }
-  
-  #kin
-  plot( x1.kin ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l' , xaxt='n' )
-  lines(x1.kin ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
-  lines(x2.kin ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
-  lines(x3.kin ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-10,0.9, "e. Kin-bias" , cex=0.95, pos=4)
-  
-  #CI plots
-  rr <- range(d$seq[d$ID_actor_index==i])
-  ff <- range(d$forg_bout[d$ID_actor_index==i])
-  if(diff(ff) > 0){
-    shade(ci1.kin[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
-    shade(ci2.kin[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
-    shade(ci3.kin[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
-  }
-  
-  ##sex
-  plot( x1.sex ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l' , xaxt='n' )
-  lines(x1.sex ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
-  lines(x2.sex ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
-  lines(x3.sex ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-10,0.9, "f. Sex-bias" , cex=0.95  ,pos=4)
-  
-  #CI plots
-  rr <- range(d$seq[d$ID_actor_index==i])
-  ff <- range(d$forg_bout[d$ID_actor_index==i])
-  if(diff(ff) > 0){
-    shade(ci1.sex[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
-    shade(ci2.sex[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
-    shade(ci3.sex[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
-  }
-  
-  #fem
-  plot( x1.fem ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l' , xaxt='n' )
-  lines(x1.fem ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
-  lines(x2.fem ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
-  lines(x3.fem ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-10,0.9, "g. Female-bias" , cex=0.95  ,pos=4)
-  
-  #CI plots
-  rr <- range(d$seq[d$ID_actor_index==i])
-  ff <- range(d$forg_bout[d$ID_actor_index==i])
-  if(diff(ff) > 0){
-    shade(ci1.fem[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
-    shade(ci2.fem[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
-    shade(ci3.fem[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
-  }
-  
+
   plot( x1.i ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l'  )
   lines(x1.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
   lines(x2.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
   lines(x3.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-10,0.9, "h. Individual learning" , cex=0.95 ,pos=4)
+  text(-2,0.9, "e. Individual learning" , cex=1 ,pos=4)
   
   #CI plots
   rr <- range(d$seq[d$ID_actor_index==i])
@@ -872,8 +826,8 @@ for(i in min(d$ID_actor_index[d$ID_actor=="Upps"])){
   
 }
 
-mtext("foraging bout", side = 1, line = 2, cex = 1, outer=TRUE) 
-mtext("probability of choosing technique", side = 2, line = .75, cex = 1 , outer=TRUE) 
+mtext("foraging bout", side = 1, line = 2, cex = 1.2, outer=TRUE) 
+mtext("probability of choosing technique", side = 2, line = .75, cex = 1.2 , outer=TRUE) 
 
 dev.off()
 ######################################################################
@@ -942,7 +896,7 @@ lines(dgKubu$V5~seq(1:length(dgKubu$Date)) , col=col.pal[2] , type="l", lw=2)
 points(dgKubu$V6~seq(1:length(dgKubu$Date)) , col=col.pal[3] , pch=19 )
 lines(dgKubu$V6~seq(1:length(dgKubu$Date)) , col=col.pal[3] , type="l", lw=2)
 legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex=1 , pch=19 , horiz=TRUE )
-legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE lw=2)
+legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE, lw=2)
 axis(1 , at=seq(1:length(dgKubu$Date)) , labels=dgKubu$Date , cex.axis=0.75)
 
 ####################################
@@ -1291,6 +1245,7 @@ nrow(d[d$group=="Kubu",])
 nrow(d[d$group=="Noha",])
 range(d$peanut_bout)
 ##export WAICtab
+WAICtab <- compare(fit_i, fit_freq, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
 write.csv(WAICtab , file="WAICtab_20days.csv")
 
 precis(fit_global)
@@ -1300,7 +1255,15 @@ precis(fit_global)
 #######plot main effects######
 #############################
 #note this was done somewhat by hand and csvs were saved to correspond to each model
+post <- extract(fit_i)
+post <- extract(fit_freq)
+post <- extract(fit_pay)
+post <- extract(fit_rank)
+post <- extract(fit_kin)
+post <- extract(fit_sex)
 post <- extract(fit_fem)
+ post <- post.fem
+ 
 plambda <- list(
   lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
   lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
@@ -1314,42 +1277,42 @@ plogits <- list(
   phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
   phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
   phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
-  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean ))
+  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_juv =  logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
 )
 plot(precis(plogits , depth=2) )
 precis(plogits)
 
-
-
-pfc <- list(
-  fc_female = exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-  fc_male = exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-  fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-  fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
-  # fc_Kubu= exp( post$G[,1,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean )),
-  # fc_Noha= exp( post$G[,2,4] + apply( post$A[,4,] + post$S[,4,] , 1 ,mean) + apply( post$I[,,4], 1 ,mean ))
-)
-
-plot(precis(pfc , depth=2) )
-
-precis(pfc)
+# pfc <- list(
+#   fc_female = exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+#   fc_male = exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+#   fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+#   fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+# )
+# plot(precis(pfc , depth=2) )
+# precis(pfc)
 
 pbeta <- list(
   beta_female = post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
   beta_male = post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
   beta_juv = post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
   beta_adult = post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) 
-
 )
 
 
 plot(precis(pbeta , depth=2) )
 precis(pbeta)
+#biglist <- list(plambda, plogits)
+#biglist <- list(plambda, plogits,pfc)
 
 biglist <- list(plambda, plogits,pbeta )
 biglist2tab <- precis(biglist , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
-write.csv(biglist2tab , file="femparams.csv")
+write.csv(biglist2tab , file="fem_params.csv")
 
+########sigmas)
 sigmalist2tab <- precis(fit_global , pars=c("sigma_i" , "sigma_g") , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
 labels <- c("sigma_i_lambda" , "sigma_i_phi" , "sigma_i_gamma" , "sigma_i_fc" , "sigma_i_beta_fem" , "sigma_i_beta_kin" , "sigma_i_beta_pay" , "sigma_i_beta_rank" , "sigma_i_beta_sex" , "sigma_g_lambda" , "sigma_g_phi" , "sigma_g_gamma" , "sigma_g_fc" , "sigma_g_beta_fem" , "sigma_g_beta_kin" , "sigma_g_beta_pay" , "sigma_g_beta_rank" , "sigma_g_beta_sex")
 
