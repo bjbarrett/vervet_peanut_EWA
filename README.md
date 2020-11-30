@@ -5,7 +5,7 @@
 
 2) peanut_data_cleaning.R contains code necessary for creating the EWA analyzed dataset of varying time windows
 
-3) Peanut_Vervet_XXmin.csv are files used in EWA analysis with XX long window widths
+3) Peanut_Vervet_XXmin.csv are files used in EWA analysis with XX long window widths, for XX=5,10,20,30 min
 
 4) ewa_cue.stan model is stan code for the payoff and cue-biased learning models
 
