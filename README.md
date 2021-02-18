@@ -1,5 +1,5 @@
 # vervet_peanut_EWA
-#data and code for vervet peanuts EWA
+## data and code for vervet peanuts EWA
 
 1) raw data folder contains individual level variables and raw behavioral data needed to create data frame used for EWA analysis
 
