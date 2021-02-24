@@ -1,9 +1,14 @@
 library(rethinking)
 library(RColorBrewer)
+#load("/Users/BJB/Downloads/20min_slopes_VervetPNUTindex.rdata")
 
-load("~/vervet_peanut_EWA/vervet_peanut_ewa_20min_8July2020.rdata")##if working with existing workspace
+#load("/Users/BJB/Downloads/vervet_peanut_ewa_20min_13May2020.rdata")##if working with existing workspace
+load("~/Dropbox/Vervets/vervet_peanut_EWA/vervet_peanut_ewa_20min_8July2020.rdata")##if working with existing workspace
 
 post <- extract(fit_global)
+
+sigmas <- precis(fit_global , pars=c("sigma_i" , "sigma_g" ) , depth=3 , hist=FALSE)
+plot(sigmas)
 
 ########################################################
 ###############Dot Plots Main Effects All Groups#######
@@ -86,6 +91,69 @@ sigmalist2tab <- precis(fit_global , pars=c("sigma_i" , "sigma_g") , depth=3 , c
 write.csv(sigmalist2tab , file="globalparamssigmas.csv")
 
 
+##############################
+#######plot main effects noha only######
+#############################
+# 
+# plambda <- list(
+#   lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] , 1 , mean)  + post$G[,2,1] ),
+#   lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] , 1 , mean)  + post$G[,2,1] ),
+#   lambda_juv = exp(post$A[,1,1] + apply(post$S[,1,] , 1 , mean)  + post$G[,2,1] ),
+#   lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] , 1 , mean)  + post$G[,2,1]  )
+# )
+# plot(precis(plambda , depth=2) )
+# precis(plambda , ci=FLASE)
+# 
+# 
+# plogits <- list(
+#   phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] , 1 , mean)  + post$G[,2,2] ), 
+#   phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] , 1 , mean)  + post$G[,2,2]), 
+#   phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] , 1 , mean)  + post$G[,2,2]),
+#   phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] , 1 , mean)  + post$G[,2,2]),
+#   gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] , 1 , mean)  + post$G[,2,3]),
+#   gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] , 1 , mean)  + post$G[,2,3]),
+#   gamma_juv = logistic(post$A[,3,1] + apply(post$S[,3,] , 1 , mean)  + post$G[,2,3] ),
+#   gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] , 1 , mean)  + post$G[,2,3] )
+# )
+# plot(precis(plogits , depth=2) )
+# precis(plogits)
+# 
+# 
+# pfc <- list(
+#   fc_female = exp(post$S[,4,1] + apply(post$A[,4,] , 1 , mean)  + post$G[,2,4]),
+#   fc_male = exp(post$S[,4,2] + apply(post$A[,4,] , 1 , mean)  + post$G[,2,4]),
+#   fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] , 1 , mean)  + post$G[,2,4] ),
+#   fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] , 1 , mean)  + post$G[,2,4] )
+# )
+# 
+# plot(precis(pfc , depth=2) )
+# precis(pfc)
+# 
+# pbeta <- list(
+#   beta_fem_female = post$S[,5,1] + apply(post$A[,5,] , 1 , mean)  + post$G[,2,5]  ,
+#   beta_fem_male = post$S[,5,2] +  apply(post$A[,5,] , 1 , mean)  + post$G[,2,5] ,
+#   beta_fem_juv = post$A[,5,1]  + apply(post$S[,5,] , 1 , mean) + post$G[,2,5] ,
+#   beta_fem_adult = post$A[,5,2] +  apply(post$S[,5,] , 1 , mean) + post$G[,2,5] ,
+#   beta_kin_female = post$S[,6,1] + apply(post$A[,6,] , 1 , mean)  + post$G[,2,6] ,
+#   beta_kin_male = post$S[,6,2] + apply(post$A[,6,] , 1 , mean)  + post$G[,2,6] ,
+#   beta_kin_juv = post$A[,6,1] + apply(post$S[,6,] , 1 , mean)  + post$G[,2,6] ,
+#   beta_kin_adult = post$A[,6,2] +  apply(post$S[,6,] , 1 , mean)  + post$G[,2,6] ,
+#   beta_pay_female = post$S[,7,1] + apply(post$A[,7,] , 1 , mean)  + post$G[,2,7] ,
+#   beta_pay_male = post$S[,7,2] + apply(post$A[,7,] , 1 , mean)  + post$G[,2,7] ,
+#   beta_pay_juv = post$A[,7,1] + apply(post$S[,7,] , 1 , mean)  + post$G[,2,7],
+#   beta_pay_adult = post$A[,7,2] + apply(post$S[,7,] , 1 , mean)  + post$G[,2,7] ,
+#   beta_rank_female = post$S[,8,1] + apply(post$A[,8,] , 1 , mean)  + post$G[,2,8] ,
+#   beta_rank_male = post$S[,8,2] + apply(post$A[,8,] , 1 , mean)  + post$G[,2,8] ,
+#   beta_rank_juv = post$A[,8,1] + apply(post$S[,8,] , 1 , mean)  + post$G[,2,8],
+#   beta_rank_adult = post$A[,8,2] + apply(post$S[,8,] , 1 , mean)  + post$G[,2,8] , 
+#   beta_sex_female = post$S[,9,1] + apply(post$A[,9,] , 1 , mean)  + post$G[,2,9] ,
+#   beta_sex_male = post$S[,9,2] + apply(post$A[,9,] , 1 , mean)  + post$G[,2,9] ,
+#   beta_sex_juv = post$A[,9,1] + apply(post$S[,9,] , 1 , mean)  + post$G[,2,9] ,
+#   beta_sex_adult = post$A[,9,2] + apply(post$S[,9,] , 1 , mean)  + post$G[,2,9] 
+# )
+# 
+# plot(precis(pbeta , depth=2) )
+# precis(pbeta)
 
 #################################################
 ##########dotplots varying effects##################
@@ -201,7 +269,6 @@ dev.off()
 ###################
 ####heatplot#######
 ###################
-
 col.pal=brewer.pal(3,"Accent")
 
 dh <- aggregate(cbind( d$x1 , d$x2 , d$x3 ) , list(ID_actor=d$ID_actor , ID_actor_index=d$ID_actor_index, Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index , ID_noha_index=d$ID_noha_index  ) , mean ) #gets neat summary table for plot
@@ -211,6 +278,15 @@ dhN<- droplevels(dhN)
 dhN<-dhN[order(dhN$date_index2),]#order by this index, dates will be ok
 dhN$ID_noha_index2 <- as.integer(as.factor(dhN$ID_noha_index))
 
+# #get column with max value
+# for (i in 1:nrow(dhN)){
+#   dhN$day_tech_max[i] <-which.max(dhN[i,8:10])
+# }
+# 
+# #transparency all 3 techs
+# plot( (dhN$date_index2-0.2) , (dhN$ID_noha_index2), col=col.pal[1], pch=21 , bg=col.alpha(col.pal[1], dhN$V1)  , xlab="Date" ,  xlim=c(0.5 , 11.5))
+# points(dhN$date_index2 ,dhN$ID_noha_index2, col=col.pal[2], pch=21 , bg=col.alpha(col.pal[2], dhN$V2) )
+# points( (dhN$date_index2 + 0.2) ,dhN$ID_noha_index2 , col=col.pal[3], pch=21 , bg=col.alpha(col.pal[3], dhN$V3) )
 
 #cex size all 3 techs, this seems the best
 
@@ -226,6 +302,10 @@ title(xlab="Date (dd.mm.yy)", line=2)
 legend("topleft", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=0.8,bty = "n" )
 
 dev.off()
+#cex size all 3 techs
+# plot( dhN$date_index2 , dhN$ID_noha_index, col=col.pal[dhN$day_tech_max]   , pch=19  , ylab="Individual id" , xlab="date" , xlim=c(0.5 , 11.5) )
+
+
 
 ####Kubu
 dh2 <- aggregate(cbind( d$x1 , d$x2 , d$x3 ) , list(ID_actor=d$ID_actor , ID_actor_index=d$ID_actor_index, Date=d$Date , date_index=d$date_index , group=d$group, group_index=d$group_index , ID_kubu_index=d$ID_kubu_index  ) , mean ) #gets neat summary table for plot
@@ -252,7 +332,6 @@ legend("topleft", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal,
 ######################################################################
 ######individual level plots from posterior predictions#############
 ######################################################################
-
 preds<-post$PrPreds
 str(post$PrPreds)
 x1 <- post$PrPreds[,,1]
@@ -275,7 +354,7 @@ col.pal=brewer.pal(3,"Accent")
 
 d$seq <- 1:nrow(d) #for graphing
 
-pdf("individual_peanut_vervet_preds_ci.pdf",width=11,height=8.5)
+pdf("individual_peanut_vervet_preds_ci_all.pdf",width=11,height=8.5)
 par( mfrow=c(12, 3) , mar=c(0.1,0.1,1,0.1)+0.1 , oma=c(3,3,0,0)+0.02 )
 par(cex = 0.5)
 par(tcl = -0.2)
@@ -292,6 +371,9 @@ for(i in 1:max(d$ID_actor_index)){
   axis(2 , at=seq(from=0 , to=1 , by=0.2) , cex.axis=0.5  , tick=TRUE , gap.axis=.01 , labels=FALSE)   
   axis(1 , at=seq(from=min(d$forg_bout[d$ID_actor_index==i] ) , to=max(d$forg_bout[d$ID_actor_index==i] ) , by=10) , cex.axis=0.5  , tick=TRUE , gap.axis=0.3 , labels=FALSE)
   
+#   if(is.integer( (i-1)/3 )==TRUE){
+#     axis(2 , at=seq(from=0 , to=1 , by=0.2) , cex.axis=0.5  , tick=TRUE  , labels=TRUE)
+# }
   
   #CI plots
   rr <- range(d$seq[d$ID_actor_index==i])
@@ -500,7 +582,11 @@ for(i in 1:max(d$ID_actor_index)){
   points(rep(1.1, nobsi) ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch= 1 + 18*d$succeed[d$ID_actor_index==i] , col=col.pal[d$technique_index[d$ID_actor_index==i]]) #empty circels are failure, filled are successes
   abline(h=1)
   
-
+  # dstmp <- d$date_index[d$ID_actor_index==i]
+  # dstmp_lab <- d$Date[d$ID_actor_index==i]
+  # dstmp_i <- c(1,1+which(diff(dstmp)!=0)) #gives cutpoints of changes (to append dated)
+  # abline(v=(dstmp_i-0.5) , col="grey")
+  # text(x=(dstmp_i-0.5) , y=rep(1.2 , length(dstmp_i)) , labels=dstmp_lab[dstmp_i] , cex=0.5 , pos=3 , srt=20 , adj=0.5 , xpd=NA)
   
 }
 
@@ -651,9 +737,9 @@ mtext("probability of choosing technique", side = 2, line = .75, cex = 1 , outer
 dev.off()
 
 ######individual plot for gran for paper
-pdf("multimodel_pred_comparisons_gran.pdf",width=10,height=7)
+pdf("multimodel_pred_comparisons_gran_2.pdf",width=10,height=8)
 
-par(mfrow=c(5,1) , mar=c(0,2,0,0) +.1 , oma=c(3.5,2.5,0,0) +0.1)
+par(mfrow=c(8,1) , mar=c(0,2,0,0) +.1 , oma=c(3.5,2.5,0,0) +0.1)
 for(i in min(d$ID_actor_index[d$ID_actor=="Gran"])){
   #global
   plot( x1 ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1.15) , ylab="" , xlab="" , type='l', xaxt='n')
@@ -723,11 +809,60 @@ for(i in min(d$ID_actor_index[d$ID_actor=="Gran"])){
     shade(ci3.freq[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
   }
 
+  #kin
+  plot( x1.kin ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l' , xaxt='n' )
+  lines(x1.kin ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
+  lines(x2.kin ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
+  lines(x3.kin ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
+  text(-2,0.9, "e. Kin-bias" , cex=1, pos=4)
+  
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+    shade(ci1.kin[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+    shade(ci2.kin[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+    shade(ci3.kin[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+  
+  ##sex
+  plot( x1.sex ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l' , xaxt='n' )
+  lines(x1.sex ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
+  lines(x2.sex ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
+  lines(x3.sex ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
+  text(-2,0.9, "f. Sex-bias" , cex=1  ,pos=4)
+  
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+    shade(ci1.sex[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+    shade(ci2.sex[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+    shade(ci3.sex[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+  
+  #fem
+  plot( x1.fem ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l' , xaxt='n' )
+  lines(x1.fem ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
+  lines(x2.fem ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
+  lines(x3.fem ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
+  text(-2,0.9, "g. Female-bias" , cex=1  ,pos=4)
+  
+  #CI plots
+  rr <- range(d$seq[d$ID_actor_index==i])
+  ff <- range(d$forg_bout[d$ID_actor_index==i])
+  if(diff(ff) > 0){
+    shade(ci1.fem[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[1], 0.15) )
+    shade(ci2.fem[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[2], 0.15)  )
+    shade(ci3.fem[,rr[1]:rr[2]] , seq(ff[1]:ff[2]) , col=col.alpha(col.pal[3], 0.15)  )
+  }
+  
+###individual learning
   plot( x1.i ~ forg_bout , data=d[d$ID_actor_index==i,]  , pch=20 , col=col.pal[1] , ylim=c(0,1) , ylab="prob using technique" , xlab="foraging bout", type='l'  )
   lines(x1.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[1] , type="l",lw=1 , lty=1)
   lines(x2.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[2] , type="l", lw=1, lty=1)
   lines(x3.i ~ forg_bout , data=d[d$ID_actor_index==i,] ,  pch=20 , col=col.pal[3] , type="l" , lw=1, lty=1)
-  text(-2,0.9, "e. Individual learning" , cex=1 ,pos=4)
+  text(-2,0.9, "h. Individual learning" , cex=1 ,pos=4)
   
   #CI plots
   rr <- range(d$seq[d$ID_actor_index==i])
@@ -744,7 +879,6 @@ mtext("foraging bout", side = 1, line = 2, cex = 1.2, outer=TRUE)
 mtext("probability of choosing technique", side = 2, line = .75, cex = 1.2 , outer=TRUE) 
 
 dev.off()
-
 ######################################################################
 ################global predictions across days per group##############
 ######################################################################
@@ -814,130 +948,9 @@ legend ("topright" , legend=c("ch" , "cms" ,"cmt") ,  col=col.pal , bty='n', cex
 legend ("topleft" , legend=c("raw probabilities" , "model predictions") ,  col=1 , bty='n', cex=1 , pch=c(1,19), lty=c(3,1), horiz=TRUE, lw=2)
 axis(1 , at=seq(1:length(dgKubu$Date)) , labels=dgKubu$Date , cex.axis=0.75)
 
-########sigmas######
-sigmalist2tab <- precis(fit_global , pars=c("sigma_i" , "sigma_g") , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
-labels <- c("sigma_i_lambda" , "sigma_i_phi" , "sigma_i_gamma" , "sigma_i_fc" , "sigma_i_beta_fem" , "sigma_i_beta_kin" , "sigma_i_beta_pay" , "sigma_i_beta_rank" , "sigma_i_beta_sex" , "sigma_g_lambda" , "sigma_g_phi" , "sigma_g_gamma" , "sigma_g_fc" , "sigma_g_beta_fem" , "sigma_g_beta_kin" , "sigma_g_beta_pay" , "sigma_g_beta_rank" , "sigma_g_beta_sex")
-
-pdf("sigmadotplotsglobal.pdf" , width=7 , height=5)
-plot(sigmalist2tab , labels=labels)
-dev.off()
-
-write.csv(sigmalist2tab , file="globalparamssigmas.csv")
-
-
-######get descriptive stats of techniques
-ddesc <- aggregate(cbind( d$y1 , d$y2 , d$y3 ) , list( group=d$group) , mean ) #gets neat summary table for plot, calculations used in text
-
-ddesc2 <- aggregate(cbind( d$y1 , d$y2 , d$y3 ) , list( group=d$group , date_index=d$date_index, Date=d$Date , nobs_group_ch=d$nobs_group_ch , nobs_group_cms=d$nobs_group_cms , nobs_group_cmt=d$nobs_group_cmt , nobs_group_all=d$nobs_group_all ) , mean )
-
-ddesc2$p1 <-  ddesc2$nobs_group_ch/ddesc2$nobs_group_all
-ddesc2$p2 <-  ddesc2$nobs_group_cms/ddesc2$nobs_group_all
-ddesc2$p3 <-  ddesc2$nobs_group_cmt/ddesc2$nobs_group_all
-ddesc2 <- ddesc2[order(ddesc2$date_index),]
-
-plot(V1 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col="white" , xlab="experimental date" , ylab="prob technique is succesful")
-lines(V1 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[1], lw=2)
-lines(V2 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[2], lw=2)
-lines(V3 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[3], lw=2)
-lines(p1 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[1], lty=2 , lw=2)
-lines(p2 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[2], lty=2 , lw=2)
-lines(p3 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[3], lty=2 , lw=2)
-legend("topleft", inset=-.01, c("prob. technique succesful","freq. technique in population") , horiz=TRUE , cex=1,bty = "n" , lty=c(1,3) , lw=2 ) 
-legend("topright", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=1,bty = "n" )
-
-plot(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col="white" , xlab="experimental date" , ylab="prob technique is succesful")
-lines(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lw=2)
-lines(V2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lw=2)
-lines(V3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3], lw=2)
-lines(p1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lty=2 , lw=2)
-lines(p2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lty=2 , lw=2)
-lines(p3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3], lty=2 , lw=2)
-legend("topleft", inset=-.01, c("prob. technique succesful","freq. technique in population") , horiz=TRUE , cex=1,bty = "n" , lty=c(1,3) , lw=2 ) 
-legend("topright", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=1,bty = "n" )
-
-#sumamry stats of groups
-length(unique(d$ID_actor[d$group=="Kubu"]))
-length(unique(d$ID_actor[d$group=="Noha"]))
-nrow(d[d$group=="Kubu",])
-nrow(d[d$group=="Noha",])
-range(d$peanut_bout)
-##export WAICtab
-WAICtab <- compare(fit_i, fit_freq, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
-write.csv(WAICtab , file="WAICtab_20days.csv")
-
-precis(fit_global)
-###################################3
-
-##############################
-#######plot main effects######
-#############################
-#note this was done somewhat by hand and csvs were saved to correspond to each model
-post <- extract(fit_i)
-post <- extract(fit_freq)
-post <- extract(fit_pay)
-post <- extract(fit_rank)
-post <- extract(fit_kin)
-post <- extract(fit_sex)
-post <- extract(fit_fem)
-post <- post.fem
- 
-plambda <- list(
-  lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
-  lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
-  lambda_juv = exp(post$A[,1,1] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
-  lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
-)
-plot(precis(plambda , depth=2) )
-precis(plambda)
-
-plogits <- list(
-  phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
-  phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
-  phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
-  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
-  gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
-  gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
-  gamma_juv =  logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
-  gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
-)
-plot(precis(plogits , depth=2) )
-precis(plogits)
-
-#below un commented for freq dep 
-
-# pfc <- list(
-#   fc_female = exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-#   fc_male = exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-#   fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
-#   fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
-# )
-# plot(precis(pfc , depth=2) )
-# precis(pfc)
-
-pbeta <- list(
-  beta_female = post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
-  beta_male = post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
-  beta_juv = post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
-  beta_adult = post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) 
-)
-
-
-plot(precis(pbeta , depth=2) )
-precis(pbeta)
-#biglist <- list(plambda, plogits)
-#biglist <- list(plambda, plogits,pfc)
-
-biglist <- list(plambda, plogits,pbeta )
-biglist2tab <- precis(biglist , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
-write.csv(biglist2tab , file="fem_params.csv")
-
-
-
 ####################################
 ###########plots of parameters######
 ####################################
-
-#####these are not in the final paper#######
 
 col.pal <- brewer.pal(12, "Paired")
 
@@ -1238,3 +1251,124 @@ lambda_plots(fit_global,extract=FALSE)
 phi_plots(fit_global,extract=FALSE)
 gamma_plots(fit_global,extract=FALSE)
 kappa_global_plots(fit_global, extract=FALSE)
+
+######get descriptive stats of techniques
+ddesc <- aggregate(cbind( d$y1 , d$y2 , d$y3 ) , list( group=d$group) , mean ) #gets neat summary table for plot, calculations used in text
+
+ddesc2 <- aggregate(cbind( d$y1 , d$y2 , d$y3 ) , list( group=d$group , date_index=d$date_index, Date=d$Date , nobs_group_ch=d$nobs_group_ch , nobs_group_cms=d$nobs_group_cms , nobs_group_cmt=d$nobs_group_cmt , nobs_group_all=d$nobs_group_all ) , mean )
+
+ddesc2$p1 <-  ddesc2$nobs_group_ch/ddesc2$nobs_group_all
+ddesc2$p2 <-  ddesc2$nobs_group_cms/ddesc2$nobs_group_all
+ddesc2$p3 <-  ddesc2$nobs_group_cmt/ddesc2$nobs_group_all
+ddesc2 <- ddesc2[order(ddesc2$date_index),]
+
+plot(V1 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col="white" , xlab="experimental date" , ylab="prob technique is succesful")
+lines(V1 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[1], lw=2)
+lines(V2 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[2], lw=2)
+lines(V3 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[3], lw=2)
+lines(p1 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[1], lty=2 , lw=2)
+lines(p2 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[2], lty=2 , lw=2)
+lines(p3 ~ date_index , data=ddesc2[ddesc2$group=="Noha",] , ylim=c(0,1) , col=col.pal[3], lty=2 , lw=2)
+legend("topleft", inset=-.01, c("prob. technique succesful","freq. technique in population") , horiz=TRUE , cex=1,bty = "n" , lty=c(1,3) , lw=2 ) 
+legend("topright", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=1,bty = "n" )
+
+plot(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col="white" , xlab="experimental date" , ylab="prob technique is succesful")
+lines(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lw=2)
+lines(V2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lw=2)
+lines(V3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3], lw=2)
+lines(p1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lty=2 , lw=2)
+lines(p2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lty=2 , lw=2)
+lines(p3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3], lty=2 , lw=2)
+legend("topleft", inset=-.01, c("prob. technique succesful","freq. technique in population") , horiz=TRUE , cex=1,bty = "n" , lty=c(1,3) , lw=2 ) 
+legend("topright", inset=-.01, c("ch","cms","cmt") , fill=col.pal,border=col.pal, horiz=TRUE,cex=1,bty = "n" )
+
+
+# lines(V1 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[1], lty=2)
+# lines(V2 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[2], lty=2)
+# lines(V3 ~ date_index , data=ddesc2[ddesc2$group=="Kubu",] , ylim=c(0,1) , col=col.pal[3] , lty=2)
+
+#sumamry stats of groups
+length(unique(d$ID_actor[d$group=="Kubu"]))
+length(unique(d$ID_actor[d$group=="Noha"]))
+nrow(d[d$group=="Kubu",])
+nrow(d[d$group=="Noha",])
+range(d$peanut_bout)
+##export WAICtab
+WAICtab <- compare(fit_i, fit_freq, fit_pay, fit_rank, fit_kin, fit_sex , fit_fem, fit_global)
+write.csv(WAICtab , file="WAICtab_20days.csv")
+
+precis(fit_global)
+###################################3
+
+##############################
+#######plot main effects######
+#############################
+#note this was done somewhat by hand and csvs were saved to correspond to each model
+post <- extract(fit_i)
+post <- extract(fit_freq)
+post <- extract(fit_pay)
+post <- extract(fit_rank)
+post <- extract(fit_kin)
+post <- extract(fit_sex)
+post <- extract(fit_fem)
+ post <- post.fem
+ 
+plambda <- list(
+  lambda_female =  exp(post$S[,1,1] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  lambda_male = exp(post$S[,1,2] + apply(post$A[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  lambda_juv = exp(post$A[,1,1] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean )),
+  lambda_adult = exp(post$A[,1,2] + apply(post$S[,1,] + post$G[,,1] , 1 , mean) + apply( post$I[,,1], 1 ,mean ))
+)
+plot(precis(plambda , depth=2) )
+precis(plambda)
+
+plogits <- list(
+  phi_female = logistic(post$S[,2,1] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_male = logistic(post$S[,2,2] + apply(post$A[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_juv =  logistic(post$A[,2,1] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  phi_adult = logistic(post$A[,2,2] + apply(post$S[,2,] + post$G[,,2] , 1 , mean) + apply( post$I[,,2], 1 ,mean )),
+  gamma_female = logistic(post$S[,3,1] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_male = logistic(post$S[,3,2] + apply(post$A[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_juv =  logistic(post$A[,3,1] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean )),
+  gamma_adult = logistic(post$A[,3,2] + apply(post$S[,3,] + post$G[,,3] , 1 , mean) + apply( post$I[,,3], 1 ,mean ))
+)
+plot(precis(plogits , depth=2) )
+precis(plogits)
+
+# pfc <- list(
+#   fc_female = exp(post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+#   fc_male = exp(post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+#   fc_juv = exp(post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean )),
+#   fc_adult = exp(post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ))
+# )
+# plot(precis(pfc , depth=2) )
+# precis(pfc)
+
+pbeta <- list(
+  beta_female = post$S[,4,1] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
+  beta_male = post$S[,4,2] + apply(post$A[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
+  beta_juv = post$A[,4,1] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) ,
+  beta_adult = post$A[,4,2] + apply(post$S[,4,] + post$G[,,4] , 1 , mean) + apply( post$I[,,4], 1 ,mean ) 
+)
+
+
+plot(precis(pbeta , depth=2) )
+precis(pbeta)
+#biglist <- list(plambda, plogits)
+#biglist <- list(plambda, plogits,pfc)
+
+biglist <- list(plambda, plogits,pbeta )
+biglist2tab <- precis(biglist , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
+write.csv(biglist2tab , file="fem_params.csv")
+
+########sigmas)
+sigmalist2tab <- precis(fit_global , pars=c("sigma_i" , "sigma_g") , depth=3 , ci=TRUE , digits=2 , hist=FALSE)
+labels <- c("sigma_i_lambda" , "sigma_i_phi" , "sigma_i_gamma" , "sigma_i_fc" , "sigma_i_beta_fem" , "sigma_i_beta_kin" , "sigma_i_beta_pay" , "sigma_i_beta_rank" , "sigma_i_beta_sex" , "sigma_g_lambda" , "sigma_g_phi" , "sigma_g_gamma" , "sigma_g_fc" , "sigma_g_beta_fem" , "sigma_g_beta_kin" , "sigma_g_beta_pay" , "sigma_g_beta_rank" , "sigma_g_beta_sex")
+
+pdf("sigmadotplotsglobal.pdf" , width=7 , height=5)
+plot(sigmalist2tab , labels=labels)
+dev.off()
+
+write.csv(sigmalist2tab , file="globalparamssigmas.csv")
+
+str(post)
